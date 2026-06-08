@@ -1,0 +1,228 @@
+{
+  "exercises": {
+    "squat": {
+      "id": "squat",
+      "name": "스쿼트",
+      "category": "freeweight",
+      "muscleGroups": ["quadriceps", "glutes", "hamstrings", "core"],
+      "keyAngles": {
+        "knee": { "min": 70, "max": 160, "optimal": 90 },
+        "hip": { "min": 60, "max": 170, "optimal": 90 },
+        "ankle": { "min": 70, "max": 110, "optimal": 85 },
+        "spine": { "min": 160, "max": 180, "optimal": 175 }
+      },
+      "repDetection": {
+        "primaryJoint": "knee",
+        "bottomThreshold": 95,
+        "topThreshold": 155,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        { "id": "knee_valgus", "message": "무릎이 안쪽으로 모이고 있습니다. 발끝 방향으로 무릎을 유지하세요." },
+        { "id": "forward_lean", "message": "상체가 과도하게 앞으로 기울고 있습니다. 가슴을 세워주세요." },
+        { "id": "heel_lift", "message": "발뒤꿈치가 들리고 있습니다. 발바닥 전체로 지면을 밟으세요." },
+        { "id": "depth_insufficient", "message": "가동범위가 부족합니다. 허벅지가 지면과 평행이 될 때까지 내려가세요." }
+      ]
+    },
+    "deadlift": {
+      "id": "deadlift",
+      "name": "데드리프트",
+      "category": "freeweight",
+      "muscleGroups": ["hamstrings", "glutes", "back", "traps", "core"],
+      "keyAngles": {
+        "hip": { "min": 45, "max": 175, "optimal": 170 },
+        "knee": { "min": 100, "max": 175, "optimal": 165 },
+        "spine": { "min": 155, "max": 180, "optimal": 175 }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "bottomThreshold": 60,
+        "topThreshold": 160,
+        "direction": "up"
+      },
+      "commonErrors": [
+        { "id": "lumbar_flexion", "message": "허리가 굽어있습니다. 척추 중립 자세를 유지하세요." },
+        { "id": "bar_path", "message": "바벨이 몸에서 멀어지고 있습니다. 바를 몸에 붙여서 당기세요." },
+        { "id": "hip_rise", "message": "엉덩이가 너무 빨리 올라가고 있습니다." }
+      ]
+    },
+    "bench_press": {
+      "id": "bench_press",
+      "name": "벤치프레스",
+      "category": "freeweight",
+      "muscleGroups": ["chest", "anterior_deltoid", "triceps"],
+      "keyAngles": {
+        "elbow": { "min": 60, "max": 170, "optimal": 90 },
+        "shoulder": { "min": 45, "max": 90, "optimal": 75 }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 80,
+        "topThreshold": 155,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        { "id": "elbow_flare", "message": "팔꿈치가 너무 벌어지고 있습니다. 45-75도를 유지하세요." },
+        { "id": "arch_excessive", "message": "허리 아치가 과도합니다." },
+        { "id": "uneven_bar", "message": "좌우 균형이 맞지 않습니다." }
+      ]
+    },
+    "push_up": {
+      "id": "push_up",
+      "name": "푸시업",
+      "category": "bodyweight",
+      "muscleGroups": ["chest", "triceps", "anterior_deltoid", "core"],
+      "keyAngles": {
+        "elbow": { "min": 60, "max": 170, "optimal": 90 },
+        "shoulder": { "min": 40, "max": 90, "optimal": 70 },
+        "spine": { "min": 165, "max": 180, "optimal": 178 }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 80,
+        "topThreshold": 155,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        { "id": "hip_sag", "message": "엉덩이가 처지고 있습니다. 코어를 긴장시켜 몸을 일직선으로 유지하세요." },
+        { "id": "hip_pike", "message": "엉덩이가 너무 올라가 있습니다." },
+        { "id": "head_drop", "message": "머리가 아래로 처지고 있습니다. 시선을 바닥 앞쪽에 고정하세요." }
+      ]
+    },
+    "overhead_press": {
+      "id": "overhead_press",
+      "name": "오버헤드 프레스",
+      "category": "freeweight",
+      "muscleGroups": ["deltoids", "triceps", "upper_trapezius"],
+      "keyAngles": {
+        "elbow": { "min": 60, "max": 175, "optimal": 170 },
+        "shoulder": { "min": 80, "max": 180, "optimal": 175 },
+        "spine": { "min": 165, "max": 180, "optimal": 175 }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 80,
+        "topThreshold": 160,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        { "id": "lumbar_hyperextension", "message": "허리가 과도하게 뒤로 젖혀집니다. 복근에 힘을 주세요." },
+        { "id": "wrist_bend", "message": "손목이 꺾이고 있습니다. 손목을 중립으로 유지하세요." }
+      ]
+    },
+    "plank": {
+      "id": "plank",
+      "name": "플랭크",
+      "category": "bodyweight",
+      "muscleGroups": ["core", "shoulders", "glutes"],
+      "keyAngles": {
+        "hip": { "min": 170, "max": 185, "optimal": 180 },
+        "shoulder": { "min": 85, "max": 95, "optimal": 90 },
+        "spine": { "min": 170, "max": 185, "optimal": 180 }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "isIsometric": true,
+        "direction": "hold"
+      },
+      "commonErrors": [
+        { "id": "hip_sag", "message": "엉덩이가 처지고 있습니다. 코어에 힘을 주세요." },
+        { "id": "hip_pike", "message": "엉덩이가 올라가 있습니다. 몸을 일직선으로 만들어주세요." },
+        { "id": "shoulder_shrug", "message": "어깨가 귀 방향으로 올라가고 있습니다." }
+      ]
+    },
+    "romanian_deadlift": {
+      "id": "romanian_deadlift",
+      "name": "루마니안 데드리프트",
+      "category": "freeweight",
+      "muscleGroups": ["hamstrings", "glutes", "lower_back"],
+      "keyAngles": {
+        "hip": { "min": 50, "max": 175, "optimal": 170 },
+        "knee": { "min": 155, "max": 175, "optimal": 168 },
+        "spine": { "min": 160, "max": 180, "optimal": 175 }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "bottomThreshold": 70,
+        "topThreshold": 160,
+        "direction": "up"
+      },
+      "commonErrors": [
+        { "id": "lumbar_flexion", "message": "허리가 굽어있습니다. 등을 평평하게 유지하세요." },
+        { "id": "knee_bend", "message": "무릎이 과도하게 굽어지고 있습니다. 무릎을 살짝만 구부리세요." }
+      ]
+    },
+    "pull_up": {
+      "id": "pull_up",
+      "name": "풀업",
+      "category": "bodyweight",
+      "muscleGroups": ["latissimus_dorsi", "biceps", "rear_deltoid"],
+      "keyAngles": {
+        "elbow": { "min": 40, "max": 170, "optimal": 50 },
+        "shoulder": { "min": 30, "max": 175, "optimal": 40 }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 155,
+        "topThreshold": 60,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        { "id": "kipping", "message": "몸을 흔들지 마세요. 순수한 근력으로 당겨주세요." },
+        { "id": "partial_range", "message": "완전한 가동범위로 실시하세요. 팔을 완전히 펴주세요." }
+      ]
+    },
+    "dumbbell_row": {
+      "id": "dumbbell_row",
+      "name": "덤벨 로우",
+      "category": "freeweight",
+      "muscleGroups": ["latissimus_dorsi", "rhomboids", "biceps"],
+      "keyAngles": {
+        "elbow": { "min": 50, "max": 170, "optimal": 60 },
+        "shoulder": { "min": 0, "max": 60, "optimal": 20 },
+        "spine": { "min": 160, "max": 180, "optimal": 175 }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 155,
+        "topThreshold": 65,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        { "id": "hip_rotation", "message": "골반이 회전하고 있습니다. 몸통을 고정하세요." },
+        { "id": "shoulder_shrug", "message": "어깨를 귀 방향으로 들지 마세요." }
+      ]
+    },
+    "burpee": {
+      "id": "burpee",
+      "name": "버피",
+      "category": "bodyweight",
+      "muscleGroups": ["full_body"],
+      "keyAngles": {
+        "hip": { "min": 50, "max": 180, "optimal": 170 },
+        "knee": { "min": 60, "max": 175, "optimal": 170 }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "bottomThreshold": 80,
+        "topThreshold": 160,
+        "direction": "full_cycle"
+      },
+      "commonErrors": [
+        { "id": "hip_sag", "message": "플랭크 자세에서 엉덩이가 처지고 있습니다." }
+      ]
+    }
+  },
+  "muscleGroups": {
+    "quadriceps": { "name": "대퇴사두근", "color": "#FF6B6B" },
+    "hamstrings": { "name": "햄스트링", "color": "#FF8E53" },
+    "glutes": { "name": "둔근", "color": "#FFA07A" },
+    "chest": { "name": "가슴", "color": "#4ECDC4" },
+    "back": { "name": "등", "color": "#45B7D1" },
+    "shoulders": { "name": "어깨", "color": "#96CEB4" },
+    "triceps": { "name": "삼두근", "color": "#FFEAA7" },
+    "biceps": { "name": "이두근", "color": "#DDA0DD" },
+    "core": { "name": "코어", "color": "#98D8C8" },
+    "calves": { "name": "종아리", "color": "#F7DC6F" }
+  }
+}
