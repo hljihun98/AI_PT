@@ -1,976 +1,791 @@
 /**
- * app.js
+ * app.js  v2.0
  * 메인 애플리케이션 오케스트레이터
- * 모든 엔진을 통합하고 UI 상태를 관리
- * 
- * 담당: Senior Full Stack Developer + AI Engineer
+ * - 운동 선택 메뉴 (카테고리별 + 자동모드)
+ * - 일시정지 / 재개 / 세션종료 버그 수정
+ * - 운동 정보 모달
+ * - 음성 피드백
  */
 
 class App {
   constructor() {
-    this.poseEngine = null;
-    this.exerciseRecognition = null;
-    this.biomechanicsEngine = null;
-    this.riskEngine = null;
-    this.dashboard = null;
-    this.exerciseDB = null;
+    this.poseEngine            = null;
+    this.exerciseRecognition   = null;
+    this.biomechanicsEngine    = null;
+    this.riskEngine            = null;
+    this.dashboard             = null;
+    this.exerciseDB            = null;
 
-    // UI 상태
+    /* ── 세션 상태 ── */
     this.state = {
-      isRunning: false,
-      isPaused: false,
-      isSessionEnded: false,
-      selectedExerciseId: '',
-      isCalibrating: false,
-      currentView: 'workout',   // 'workout' | 'dashboard' | 'settings'
-      cameraMode: 'user',        // 'user' | 'environment'
-      weightInput: 0,
-      showSkeleton: true,
-      showAngles: false,
-      voiceEnabled: true,
-      repGoal: 0,
-      setGoal: 0
+      isRunning      : false,   // 카메라 + 분석 실행 중
+      isPaused       : false,   // 일시정지
+      sessionActive  : false,   // 세션이 열려 있는지
+      currentView    : 'select',// 'select' | 'info' | 'workout' | 'dashboard'
+      cameraMode     : 'user',
+      weightInput    : 0,
+      showSkeleton   : true,
+      showAngles     : false,
+      voiceEnabled   : true,
+      autoDetect     : false,   // 자동 감지 모드
+      selectedExercise: null,   // 수동 선택 시 exerciseId
     };
 
-    // 음성 피드백
-    this.speechSynthesis = window.speechSynthesis;
-    this.lastVoiceFeedback = 0;
-    this.VOICE_COOLDOWN = 4000; // 4초
-    this.voiceQueue = [];
-    this.isSpeaking = false;
+    /* ── 타이머 ── */
+    this.sessionTimer        = null;
+    this.sessionStartTime    = null;
+    this.pausedElapsed       = 0;    // 일시정지 이전까지 누적 경과시간(ms)
+    this.pauseStartTime      = null;
 
-    // 운동 관련
-    this.currentFormScore = 0;
-    this.repCount = 0;
-    this.setCount = 0;
-    this.sessionTimer = null;
-    this.sessionStartTime = null;
-    this.sessionElapsedMs = 0;
+    /* ── 음성 ── */
+    this.speechSynthesis     = window.speechSynthesis;
+    this.lastVoiceFeedback   = 0;
+    this.VOICE_COOLDOWN      = 4000;
 
-    // 캔버스
-    this.canvas = null;
-    this.ctx = null;
-    this.videoElement = null;
+    /* ── 카운트 ── */
+    this.currentFormScore    = 0;
+    this.repCount            = 0;
+    this.setCount            = 0;
 
-    // 최근 피드백 메시지
-    this.recentFeedback = [];
+    /* ── DOM ── */
+    this.canvas              = null;
+    this.ctx                 = null;
+    this.videoElement        = null;
+
     this.feedbackDisplayTime = 3000;
   }
 
-  /**
-   * 앱 초기화
-   */
+  /* ═══════════════════════════════════════
+     초기화
+  ═══════════════════════════════════════ */
   async initialize() {
-    console.log('[App] 초기화 시작');
-
-    // 운동 데이터베이스 로드
+    // DB 로드
     try {
-      const response = await fetch('./exercise_database.json');
-      this.exerciseDB = await response.json();
+      const r = await fetch('./exercise_database.json');
+      this.exerciseDB = await r.json();
     } catch (e) {
-      console.error('[App] 운동 DB 로드 실패, 기본값 사용');
-      this.exerciseDB = { exercises: {}, muscleGroups: {} };
+      this.exerciseDB = { exercises: {}, muscleGroups: {}, categories: {} };
     }
 
     // 엔진 초기화
-    this.poseEngine = window.poseEngine;
+    this.poseEngine          = window.poseEngine;
     this.exerciseRecognition = new ExerciseRecognition(this.exerciseDB);
-    this.biomechanicsEngine = new BiomechanicsEngine(this.exerciseDB);
-    this.riskEngine = new RiskEngine(this.exerciseDB);
-    this.dashboard = new Dashboard();
+    this.biomechanicsEngine  = new BiomechanicsEngine(this.exerciseDB);
+    this.riskEngine          = new RiskEngine(this.exerciseDB);
+    this.dashboard           = new Dashboard();
 
-    // DOM 요소 참조
     this.videoElement = document.getElementById('videoElement');
-    this.canvas = document.getElementById('poseCanvas');
-    this.ctx = this.canvas?.getContext('2d');
+    this.canvas       = document.getElementById('poseCanvas');
+    this.ctx          = this.canvas?.getContext('2d');
 
-    // 엔진 콜백 설정
     this._setupCallbacks();
-
-    // 이벤트 리스너 등록
     this._setupEventListeners();
 
-    // 대시보드 DB 초기화
     await this.dashboard.initialize();
 
-    this._populateExerciseSelect();
+    const ok = await this.poseEngine.initialize();
+    if (!ok) { this._showError('MediaPipe 초기화 실패. 인터넷 연결을 확인해주세요.'); return; }
 
-    // MediaPipe 초기화
-    const poseReady = await this.poseEngine.initialize();
-    if (!poseReady) {
-      this._showError('MediaPipe 초기화 실패. 인터넷 연결을 확인해주세요.');
-      return;
-    }
-
-    // 캔버스 리사이즈
     this._resizeCanvas();
     window.addEventListener('resize', () => this._resizeCanvas());
 
-    // UI 업데이트 루프 시작
-    this._startUILoop();
-
-    this._updateStatus('카메라를 시작하려면 "시작" 버튼을 누르세요');
-    console.log('[App] 초기화 완료');
+    // 운동 선택 화면 렌더링
+    this._renderSelectView();
+    this._showView('select');
   }
 
-  /**
-   * 콜백 설정
-   */
-  _setupCallbacks() {
-    // 포즈 감지 콜백
-    this.poseEngine.onPoseDetected = (poseData) => {
-      this._onPoseDetected(poseData);
-    };
+  /* ═══════════════════════════════════════
+     뷰 전환
+  ═══════════════════════════════════════ */
+  _showView(name) {
+    ['select','info','workout','dashboard'].forEach(v => {
+      const el = document.getElementById(`view-${v}`);
+      if (el) el.classList.toggle('hidden', v !== name);
+    });
+    this.state.currentView = name;
 
-    this.poseEngine.onError = (error) => {
-      this._showError('카메라 오류: ' + error.message);
-    };
-
-    // 운동 감지 콜백
-    this.exerciseRecognition.onExerciseDetected = (data) => {
-      this._onExerciseDetected(data);
-    };
-
-    this.exerciseRecognition.onRepCounted = (data) => {
-      this._onRepCounted(data);
-    };
-
-    this.exerciseRecognition.onSetComplete = (data) => {
-      this._onSetComplete(data);
-    };
-
-    // 생체역학 콜백
-    this.biomechanicsEngine.onFatigueAlert = (data) => {
-      this._onFatigueDetected(data);
-    };
-
-    // 위험 감지 콜백
-    this.riskEngine.onRiskDetected = (data) => {
-      this._onRiskDetected(data);
-    };
+    // nav 버튼 active
+    document.getElementById('navBtnWorkout')?.classList.toggle('active', name === 'workout' || name === 'select' || name === 'info');
+    document.getElementById('navBtnDashboard')?.classList.toggle('active', name === 'dashboard');
   }
 
-  /**
-   * 이벤트 리스너 설정
-   */
-  _setupEventListeners() {
-    // 시작/정지 버튼
-    document.getElementById('btnStart')?.addEventListener('click', () => this.startWorkout());
-    document.getElementById('btnStop')?.addEventListener('click', () => this.pauseWorkout());
+  showDashboard() {
+    this._showView('dashboard');
+    this.dashboard.renderDashboard('dashboardContainer');
+  }
+  showWorkout() { this._showView(this.state.sessionActive ? 'workout' : 'select'); }
 
-    // 카메라 전환
-    document.getElementById('btnCameraFlip')?.addEventListener('click', () => this.flipCamera());
-    document.getElementById('exerciseSelect')?.addEventListener('change', (e) => this.selectExercise(e.target.value));
-    document.getElementById('btnAngles')?.addEventListener('click', () => this.toggleAngles());
+  /* ═══════════════════════════════════════
+     운동 선택 화면 렌더링
+  ═══════════════════════════════════════ */
+  _renderSelectView() {
+    const container = document.getElementById('selectViewContent');
+    if (!container || !this.exerciseDB) return;
 
-    // 세트 완료
-    document.getElementById('btnCompleteSet')?.addEventListener('click', () => this.completeCurrentSet());
-    document.getElementById('btnResetReps')?.addEventListener('click', () => this.resetReps());
+    const cats  = this.exerciseDB.categories || {};
+    const exers = this.exerciseDB.exercises  || {};
 
-    // 음성 토글
-    document.getElementById('btnVoice')?.addEventListener('click', () => this.toggleVoice());
-
-    // 스켈레톤 토글
-    document.getElementById('btnSkeleton')?.addEventListener('click', () => this.toggleSkeleton());
-
-    // 대시보드 전환
-    document.getElementById('btnDashboard')?.addEventListener('click', () => this.showDashboard());
-    document.getElementById('btnWorkout')?.addEventListener('click', () => this.showWorkout());
-
-    // 세션 종료
-    document.getElementById('btnEndSession')?.addEventListener('click', () => this.endSession());
-
-    // 무게 입력
-    document.getElementById('weightInput')?.addEventListener('change', (e) => {
-      this.state.weightInput = parseFloat(e.target.value) || 0;
+    // 카테고리별 그룹핑
+    const grouped = {};
+    Object.values(exers).forEach(ex => {
+      if (!grouped[ex.category]) grouped[ex.category] = [];
+      grouped[ex.category].push(ex);
     });
 
-    // 키보드 단축키
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') { e.preventDefault(); this.completeCurrentSet(); }
-      if (e.code === 'KeyR') this.resetReps();
-      if (e.code === 'KeyV') this.toggleVoice();
+    let html = `
+      <!-- 자동 감지 모드 -->
+      <div class="select-auto-card" id="autoModeCard">
+        <div class="auto-card-inner">
+          <div class="auto-icon">🤖</div>
+          <div>
+            <div class="auto-title">AI 자동 감지 모드</div>
+            <div class="auto-desc">카메라가 운동 종류를 자동으로 인식합니다</div>
+          </div>
+          <button class="btn btn-primary" onclick="app.startAutoMode()">자동 시작</button>
+        </div>
+      </div>
+
+      <div class="select-divider"><span>또는 운동을 직접 선택하세요</span></div>
+    `;
+
+    // 카테고리 탭
+    html += `<div class="category-tabs" id="categoryTabs">`;
+    Object.entries(cats).forEach(([catId, cat], i) => {
+      html += `<button class="cat-tab ${i===0?'active':''}" data-cat="${catId}" onclick="app._filterCategory('${catId}', this)">
+        ${cat.icon} ${cat.name}
+      </button>`;
     });
+    html += `</div>`;
+
+    // 운동 카드 그리드
+    html += `<div class="exercise-grid" id="exerciseGrid">`;
+    Object.values(exers).forEach(ex => {
+      const cat = cats[ex.category] || {};
+      const diffLabel = { beginner:'초급', intermediate:'중급', advanced:'고급' }[ex.difficulty] || ex.difficulty;
+      const diffColor = { beginner:'#00ff88', intermediate:'#ffd700', advanced:'#ff4444' }[ex.difficulty] || '#aaa';
+      html += `
+        <div class="exercise-card" data-cat="${ex.category}" onclick="app._showExerciseInfo('${ex.id}')">
+          <div class="ex-card-emoji">${ex.emoji || '💪'}</div>
+          <div class="ex-card-name">${ex.name}</div>
+          <div class="ex-card-muscles">${(ex.targetMuscles||[]).slice(0,2).join(' · ')}</div>
+          <div class="ex-card-footer">
+            <span class="ex-cat-badge" style="color:${cat.color||'#aaa'}">${cat.icon||''} ${cat.name||ex.category}</span>
+            <span class="ex-diff-badge" style="color:${diffColor}">${diffLabel}</span>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+
+    container.innerHTML = html;
+
+    // 첫 번째 카테고리 필터 적용
+    const firstCat = Object.keys(cats)[0];
+    if (firstCat) this._filterCategory(firstCat, document.querySelector('.cat-tab'));
   }
 
-  /**
-   * 운동 선택 메뉴 구성
-   */
-  _populateExerciseSelect() {
-    const select = document.getElementById('exerciseSelect');
-    if (!select || !this.exerciseDB?.exercises) return;
+  _filterCategory(catId, btn) {
+    // 탭 active
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    btn?.classList.add('active');
 
-    const categoryNames = {
-      bodyweight: '맨몸 운동', dumbbell: '덤벨 운동', barbell: '바벨 운동',
-      machine: '머신 운동', cable: '케이블 운동', core: '코어 운동',
-      cardio: '유산소 운동', stretching: '스트레칭 운동', freeweight: '프리웨이트'
-    };
-    select.innerHTML = '<option value="">운동을 선택하세요</option>';
-    const groups = {};
-    Object.values(this.exerciseDB.exercises).forEach(ex => {
-      const category = ex.category || 'etc';
-      if (!groups[category]) groups[category] = [];
-      groups[category].push(ex);
-    });
-    Object.entries(groups).forEach(([category, exercises]) => {
-      const optgroup = document.createElement('optgroup');
-      optgroup.label = categoryNames[category] || category;
-      exercises.sort((a, b) => a.name.localeCompare(b.name, 'ko')).forEach(ex => {
-        const opt = document.createElement('option');
-        opt.value = ex.id;
-        opt.textContent = ex.name;
-        optgroup.appendChild(opt);
-      });
-      select.appendChild(optgroup);
+    // 카드 필터
+    document.querySelectorAll('.exercise-card').forEach(card => {
+      card.style.display = (catId === 'all' || card.dataset.cat === catId) ? 'flex' : 'none';
     });
   }
 
-  /**
-   * 선택한 운동 정보 표시 및 수동 운동 모드 설정
-   */
-  selectExercise(exerciseId) {
-    this.state.selectedExerciseId = exerciseId;
-    const exercise = this.exerciseDB?.exercises?.[exerciseId];
-    const panel = document.getElementById('exerciseInfoPanel');
-    if (!panel) return;
+  /* ═══════════════════════════════════════
+     운동 정보 모달
+  ═══════════════════════════════════════ */
+  _showExerciseInfo(exerciseId) {
+    const ex  = this.exerciseDB.exercises[exerciseId];
+    const cat = this.exerciseDB.categories[ex?.category] || {};
+    if (!ex) return;
 
-    if (!exercise) {
-      panel.innerHTML = '<div class="empty-guide">운동을 선택하면 목적, 자극 부위, 방법, 주의사항이 표시됩니다.</div>';
-      return;
+    const container = document.getElementById('infoViewContent');
+    const diffLabel = { beginner:'초급', intermediate:'중급', advanced:'고급' }[ex.difficulty] || '';
+    const diffColor = { beginner:'#00ff88', intermediate:'#ffd700', advanced:'#ff4444' }[ex.difficulty] || '#aaa';
+
+    container.innerHTML = `
+      <div class="info-header">
+        <button class="btn btn-neutral" onclick="app._showView('select')" style="padding:6px 12px; font-size:11px;">← 목록</button>
+        <div class="info-title-row">
+          <span class="info-emoji">${ex.emoji || '💪'}</span>
+          <div>
+            <h2 class="info-name">${ex.name}</h2>
+            <div class="info-meta">
+              <span style="color:${cat.color||'#aaa'}">${cat.icon||''} ${cat.name||''}</span>
+              <span style="color:${diffColor}">● ${diffLabel}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-grid">
+
+        <div class="info-card">
+          <div class="info-card-title">🎯 운동 목적</div>
+          <p class="info-card-body">${ex.purpose || '-'}</p>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-title">💪 주요 자극 부위</div>
+          <div class="muscle-tags">
+            ${(ex.targetMuscles||[]).map(m=>`<span class="muscle-tag">${m}</span>`).join('')}
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-title">✨ 기대 효과</div>
+          <ul class="info-list">
+            ${(ex.benefits||[]).map(b=>`<li>${b}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-title">📋 올바른 운동 방법</div>
+          <ol class="info-list ordered">
+            ${(ex.instructions||[]).map(s=>`<li>${s}</li>`).join('')}
+          </ol>
+        </div>
+
+        <div class="info-card caution-card">
+          <div class="info-card-title">⚠️ 주의사항</div>
+          <ul class="info-list">
+            ${(ex.cautions||[]).map(c=>`<li>${c}</li>`).join('')}
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="info-start-row">
+        <button class="btn btn-primary info-start-btn" onclick="app.startWithExercise('${ex.id}')">
+          ▶ 이 운동 시작하기
+        </button>
+      </div>
+    `;
+
+    this._showView('info');
+  }
+
+  /* ═══════════════════════════════════════
+     자동 모드 시작
+  ═══════════════════════════════════════ */
+  async startAutoMode() {
+    this.state.autoDetect       = true;
+    this.state.selectedExercise = null;
+    await this._beginSession();
+  }
+
+  /* ═══════════════════════════════════════
+     특정 운동 선택 후 시작
+  ═══════════════════════════════════════ */
+  async startWithExercise(exerciseId) {
+    this.state.autoDetect        = false;
+    this.state.selectedExercise  = exerciseId;
+
+    // 운동 인식 엔진에 강제 설정
+    this.exerciseRecognition.forceExercise(exerciseId);
+
+    await this._beginSession();
+  }
+
+  /* ═══════════════════════════════════════
+     세션 시작 공통 로직
+  ═══════════════════════════════════════ */
+  async _beginSession() {
+    this._showView('workout');
+
+    // 운동 이름 표시
+    if (!this.state.autoDetect && this.state.selectedExercise) {
+      const ex = this.exerciseDB.exercises[this.state.selectedExercise];
+      const el = document.getElementById('detectedExercise');
+      if (el && ex) { el.textContent = ex.name; el.style.color = '#00f5ff'; }
     }
 
-    if (this.exerciseRecognition) this.exerciseRecognition.selectExercise(exerciseId);
-    const muscles = (exercise.muscleGroups || []).map(m => this.exerciseDB.muscleGroups?.[m]?.name || m).join(', ');
-    panel.innerHTML = `
-      <div class="exercise-info-title">${exercise.name}</div>
-      <div class="exercise-chip-row"><span>${this._categoryName(exercise.category)}</span><span>${muscles || '전신'}</span></div>
-      <div class="info-section"><b>운동 목적</b><p>${exercise.purpose || '근력과 움직임 품질 향상'}</p></div>
-      <div class="info-section"><b>주요 자극 부위</b><p>${muscles || '전신'}</p></div>
-      <div class="info-section"><b>기대 효과</b><p>${exercise.benefits || '근력, 안정성, 자세 제어 능력 향상'}</p></div>
-      <div class="info-section"><b>올바른 방법</b><ol>${(exercise.instructions || []).map(x => `<li>${x}</li>`).join('')}</ol></div>
-      <div class="info-section warning"><b>주의사항</b><ul>${(exercise.precautions || []).map(x => `<li>${x}</li>`).join('')}</ul></div>`;
+    // 카메라 시작
+    const ok = await this.poseEngine.startCamera(this.videoElement, this.state.cameraMode);
+    if (!ok) { this._showError('카메라 접근 권한이 필요합니다.'); this._showView('select'); return; }
 
-    const detected = document.getElementById('detectedExercise');
-    if (detected) detected.textContent = exercise.name;
-    this._updateStatus(`${exercise.name} 선택됨 - 시작 버튼을 누르세요`);
-  }
+    this.state.isRunning    = true;
+    this.state.isPaused     = false;
+    this.state.sessionActive= true;
+    this.pausedElapsed      = 0;
+    this.sessionStartTime   = Date.now();
 
-  _categoryName(category) {
-    return ({ bodyweight: '맨몸', dumbbell: '덤벨', barbell: '바벨', machine: '머신', cable: '케이블', core: '코어', cardio: '유산소', stretching: '스트레칭', freeweight: '프리웨이트' })[category] || category || '기타';
-  }
-
-  toggleAngles() {
-    this.state.showAngles = !this.state.showAngles;
-    document.getElementById('btnAngles')?.classList.toggle('active', this.state.showAngles);
-  }
-
-  _resetWorkoutUI() {
-    const repEl = document.getElementById('repCounter'); if (repEl) repEl.textContent = '0';
-    const setEl = document.getElementById('setCounter'); if (setEl) setEl.textContent = '0';
-    const qualityEl = document.getElementById('repQuality'); if (qualityEl) qualityEl.textContent = '--';
-    const timerEl = document.getElementById('sessionTimer'); if (timerEl) timerEl.textContent = '00:00';
-    const startBtn = document.getElementById('btnStart'); if (startBtn) startBtn.textContent = '▶ 운동 시작';
-  }
-
-  /**
-   * 운동 시작
-   */
-  async startWorkout() {
-    if (this.state.isRunning) return;
-
-    const selected = this.state.selectedExerciseId || document.getElementById('exerciseSelect')?.value;
-    if (!selected) {
-      this._showError('먼저 운동을 선택해주세요.');
-      return;
+    this.dashboard.startSession();
+    this.exerciseRecognition.resetSession();
+    if (!this.state.autoDetect && this.state.selectedExercise) {
+      this.exerciseRecognition.forceExercise(this.state.selectedExercise);
     }
 
-    const started = await this.poseEngine.startCamera(this.videoElement, this.state.cameraMode);
-    if (!started) {
-      this._showError('카메라 접근 권한이 필요합니다.');
-      return;
-    }
-
-    const isResume = this.state.isPaused && this.sessionStartTime;
-    this.state.isRunning = true;
-    this.state.isPaused = false;
-    this.state.isSessionEnded = false;
-
-    if (!isResume) {
-      this.sessionElapsedMs = 0;
-      this.sessionStartTime = Date.now();
-      this.dashboard.startSession();
-      this.exerciseRecognition.resetSession();
-      this.exerciseRecognition.selectExercise(selected);
-      this.repCount = 0;
-      this.setCount = 0;
-      this._resetWorkoutUI();
-    } else {
-      this.sessionStartTime = Date.now() - this.sessionElapsedMs;
-      this.exerciseRecognition.selectExercise(selected);
-    }
-
-    clearInterval(this.sessionTimer);
-    this.sessionTimer = setInterval(() => this._updateSessionTimer(), 1000);
-    this._updateSessionTimer();
-
-    document.getElementById('btnStart')?.classList.add('hidden');
-    document.getElementById('btnStop')?.classList.remove('hidden');
-    document.getElementById('workoutControls')?.classList.remove('hidden');
-    document.getElementById('exerciseSelect')?.setAttribute('disabled', 'disabled');
-
-    this._updateStatus(isResume ? '운동을 재개했습니다' : '선택한 운동 분석 중...');
-    this._speakFeedback(isResume ? '운동을 재개합니다.' : `${this.exerciseDB.exercises[selected].name} 운동을 시작합니다.`);
+    this._startSessionTimer();
+    this._updatePauseResumeBtn();
+    this._updateStatus('분석 중...');
+    this._speakFeedback('운동을 시작합니다. 카메라 앞에 서주세요.');
   }
 
-  /**
-   * 운동 일시정지: 카운트/타이머를 멈추고 현재 세션 데이터는 유지
-   */
-  async pauseWorkout() {
-    if (!this.state.isRunning) return;
+  /* ═══════════════════════════════════════
+     일시정지 / 재개  ← 핵심 버그 수정
+  ═══════════════════════════════════════ */
+  pauseWorkout() {
+    if (!this.state.isRunning || this.state.isPaused) return;
 
+    this.state.isPaused  = true;
     this.state.isRunning = false;
-    this.state.isPaused = true;
-    this.sessionElapsedMs = this.sessionStartTime ? Date.now() - this.sessionStartTime : this.sessionElapsedMs;
+    this.pauseStartTime  = Date.now();
+
+    // 타이머 정지
     clearInterval(this.sessionTimer);
     this.sessionTimer = null;
 
-    await this.poseEngine.stopCamera();
+    // 카메라 피드 일시정지 (pose 처리 중단)
+    this.poseEngine.isRunning = false;
 
-    document.getElementById('btnStart')?.classList.remove('hidden');
-    document.getElementById('btnStop')?.classList.add('hidden');
-    const startBtn = document.getElementById('btnStart');
-    if (startBtn) startBtn.textContent = '▶ 운동 재개';
-
-    this._updateStatus('일시정지됨 - 재개 버튼을 누르면 이어서 진행됩니다');
+    this._updatePauseResumeBtn();
+    this._updateStatus('일시정지됨');
     this._clearCanvas();
   }
 
-  /**
-   * 기존 stopWorkout 호환용: 일시정지로 동작
-   */
-  async stopWorkout() {
-    return this.pauseWorkout();
+  resumeWorkout() {
+    if (!this.state.isPaused) return;
+
+    // 일시정지 시간 누적
+    if (this.pauseStartTime) {
+      this.pausedElapsed += Date.now() - this.pauseStartTime;
+      this.pauseStartTime = null;
+    }
+
+    this.state.isPaused  = false;
+    this.state.isRunning = true;
+
+    // 카메라 피드 재개
+    this.poseEngine.isRunning = true;
+
+    // 타이머 재시작
+    this._startSessionTimer();
+    this._updatePauseResumeBtn();
+    this._updateStatus('분석 중...');
+    this._speakFeedback('운동을 재개합니다.');
   }
 
-  /**
-   * 카메라 전환
-   */
+  togglePause() {
+    if (this.state.isPaused) this.resumeWorkout();
+    else this.pauseWorkout();
+  }
+
+  _updatePauseResumeBtn() {
+    const btn = document.getElementById('btnPauseResume');
+    if (!btn) return;
+    btn.textContent = this.state.isPaused ? '▶ 재개' : '⏸ 일시정지';
+    btn.className   = this.state.isPaused ? 'btn btn-primary' : 'btn btn-neutral';
+  }
+
+  /* ═══════════════════════════════════════
+     세션 종료  ← 핵심 버그 수정
+  ═══════════════════════════════════════ */
+  async endSession() {
+    // 1. 카메라 완전 정지
+    this.state.isRunning     = false;
+    this.state.isPaused      = false;
+    this.state.sessionActive = false;
+    this.poseEngine.isRunning = false;
+
+    await this.poseEngine.stopCamera();
+
+    // 2. 타이머 정지
+    clearInterval(this.sessionTimer);
+    this.sessionTimer    = null;
+    this.sessionStartTime = null;
+    this.pausedElapsed    = 0;
+
+    // 3. 음성 합성 정지
+    this.speechSynthesis?.cancel();
+
+    // 4. 캔버스 클리어
+    this._clearCanvas();
+
+    // 5. DB 세션 저장
+    const sessionData = await this.dashboard.endSession();
+
+    // 6. 피드백
+    if (sessionData) {
+      const sets = sessionData.sets?.length || 0;
+      const reps = sessionData.totalReps   || 0;
+      this._speakFeedback(`운동 완료! 총 ${sets}세트, ${reps}회 수행했습니다.`);
+    }
+
+    // 7. 상태 초기화
+    this.repCount = 0;
+    this.setCount = 0;
+    this.exerciseRecognition.resetSession();
+    this._updateTimerDisplay(0);
+
+    // 8. 대시보드로 이동
+    this.showDashboard();
+  }
+
+  /* ═══════════════════════════════════════
+     카메라 전환
+  ═══════════════════════════════════════ */
   async flipCamera() {
     this.state.cameraMode = this.state.cameraMode === 'user' ? 'environment' : 'user';
-    if (this.state.isRunning) {
+    if (this.state.isRunning || this.state.sessionActive) {
       await this.poseEngine.startCamera(this.videoElement, this.state.cameraMode);
     }
   }
 
-  /**
-   * 포즈 감지 메인 처리
-   */
-  _onPoseDetected(poseData) {
-    if (!this.state.isRunning) return;
+  /* ═══════════════════════════════════════
+     타이머
+  ═══════════════════════════════════════ */
+  _startSessionTimer() {
+    clearInterval(this.sessionTimer);
+    this.sessionTimer = setInterval(() => {
+      if (this.state.isPaused) return;
+      const elapsed = (Date.now() - this.sessionStartTime) - this.pausedElapsed;
+      this._updateTimerDisplay(elapsed);
+    }, 500);
+  }
 
+  _updateTimerDisplay(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    const el = document.getElementById('sessionTimer');
+    if (el) el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  /* ═══════════════════════════════════════
+     포즈 감지 메인 처리
+  ═══════════════════════════════════════ */
+  _setupCallbacks() {
+    this.poseEngine.onPoseDetected = (poseData) => {
+      if (!this.state.isRunning || this.state.isPaused) return;
+      this._onPoseDetected(poseData);
+    };
+
+    this.poseEngine.onError = (err) => this._showError('카메라 오류: ' + err.message);
+
+    this.exerciseRecognition.onExerciseDetected = (d) => this._onExerciseDetected(d);
+    this.exerciseRecognition.onRepCounted       = (d) => this._onRepCounted(d);
+    this.exerciseRecognition.onSetComplete      = (d) => this._onSetComplete(d);
+
+    this.biomechanicsEngine.onFatigueAlert = (d) => this._onFatigueDetected(d);
+    this.riskEngine.onRiskDetected         = (d) => this._onRiskDetected(d);
+  }
+
+  _setupEventListeners() {
+    document.getElementById('btnPauseResume')?.addEventListener('click', () => this.togglePause());
+    document.getElementById('btnEndSession') ?.addEventListener('click', () => this.endSession());
+    document.getElementById('btnCompleteSet')?.addEventListener('click', () => this.completeCurrentSet());
+    document.getElementById('btnCameraFlip') ?.addEventListener('click', () => this.flipCamera());
+    document.getElementById('btnVoice')      ?.addEventListener('click', () => this.toggleVoice());
+    document.getElementById('btnSkeleton')   ?.addEventListener('click', () => this.toggleSkeleton());
+    document.getElementById('btnAngles')     ?.addEventListener('click', () => {
+      this.state.showAngles = !this.state.showAngles;
+      document.getElementById('btnAngles')?.classList.toggle('active', this.state.showAngles);
+    });
+    document.getElementById('weightInput')?.addEventListener('change', (e) => {
+      this.state.weightInput = parseFloat(e.target.value) || 0;
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.code === 'Space')  { e.preventDefault(); this.completeCurrentSet(); }
+      if (e.code === 'KeyP')   this.togglePause();
+      if (e.code === 'KeyR')   this.resetReps();
+      if (e.code === 'KeyV')   this.toggleVoice();
+    });
+  }
+
+  _onPoseDetected(poseData) {
     const { landmarks, angles, metrics } = poseData;
 
-    // 운동 감지
-    const detection = this.exerciseRecognition.detectExercise(poseData);
+    // 운동 감지 (자동 모드만)
+    let detection = null;
+    if (this.state.autoDetect) {
+      detection = this.exerciseRecognition.detectExercise(poseData);
+    }
 
     // 반복 감지
-    if (this.exerciseRecognition.currentExercise) {
+    const currentEx = this.exerciseRecognition.currentExercise;
+    if (currentEx) {
       this.exerciseRecognition.detectRep(angles);
     }
 
     // 자세 분석
-    let formScore = null;
-    let riskAssessment = null;
-
-    if (this.exerciseRecognition.currentExercise) {
-      formScore = this.biomechanicsEngine.calculateFormScore(
-        poseData,
-        this.exerciseRecognition.currentExercise
-      );
-
-      riskAssessment = this.riskEngine.assessRisk(
-        poseData,
-        this.exerciseRecognition.currentExercise
-      );
-
-      // 자세 점수 업데이트
+    let formScore = null, riskAssessment = null;
+    if (currentEx) {
+      formScore      = this.biomechanicsEngine.calculateFormScore(poseData, currentEx);
+      riskAssessment = this.riskEngine.assessRisk(poseData, currentEx);
       this.currentFormScore = formScore.total;
-
-      // 피드백 생성 (쿨다운 적용)
       this._processFeedback(formScore, riskAssessment);
     }
 
-    // 캔버스에 그리기
+    // 캔버스 그리기
     if (this.canvas && this.ctx && this.state.showSkeleton) {
       this._drawFrame(landmarks, angles, formScore, riskAssessment);
     }
 
-    // UI 업데이트
     this._updateRealTimeUI(formScore, riskAssessment, detection);
   }
 
-  /**
-   * 캔버스에 프레임 그리기
-   */
   _drawFrame(landmarks, angles, formScore, riskAssessment) {
     const ctx = this.ctx;
-    const w = this.canvas.width;
-    const h = this.canvas.height;
-
-    // 캔버스 클리어
+    const w   = this.canvas.width;
+    const h   = this.canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    // 포즈 스켈레톤 그리기
     if (landmarks) {
-      const score = formScore ? formScore.total : null;
-      this.poseEngine.drawPose(ctx, landmarks, score);
-
-      // 각도 표시 (옵션)
-      if (this.state.showAngles && angles) {
-        this._drawAngles(ctx, landmarks, angles);
-      }
-
-      // 위험 하이라이트
-      if (riskAssessment && riskAssessment.risks.length > 0) {
-        this._drawRiskHighlights(ctx, landmarks, riskAssessment.risksByJoint);
-      }
+      this.poseEngine.drawPose(ctx, landmarks, formScore?.total ?? null);
+      if (this.state.showAngles && angles) this._drawAngles(ctx, landmarks, angles);
+      if (riskAssessment?.risks?.length) this._drawRiskHighlights(ctx, landmarks, riskAssessment.risksByJoint);
     }
-
-    // 반복 카운터 오버레이
     this._drawRepCounter(ctx, w, h);
   }
 
-  /**
-   * 관절 각도 텍스트 표시
-   */
   _drawAngles(ctx, landmarks, angles) {
-    const w = this.canvas.width;
-    const h = this.canvas.height;
+    const w = this.canvas.width, h = this.canvas.height;
     const L = this.poseEngine.LANDMARKS;
-
-    const displayAngles = [
-      { joint: L.RIGHT_ELBOW, angle: angles.rightElbow, label: 'R팔꿈치' },
-      { joint: L.LEFT_ELBOW, angle: angles.leftElbow, label: 'L팔꿈치' },
-      { joint: L.RIGHT_KNEE, angle: angles.rightKnee, label: 'R무릎' },
-      { joint: L.LEFT_KNEE, angle: angles.leftKnee, label: 'L무릎' },
-      { joint: L.RIGHT_HIP, angle: angles.rightHip, label: 'R고관절' },
-      { joint: L.LEFT_HIP, angle: angles.leftHip, label: 'L고관절' }
+    const pairs = [
+      [L.RIGHT_ELBOW, angles.rightElbow, 'R팔꿈치'],
+      [L.LEFT_ELBOW,  angles.leftElbow,  'L팔꿈치'],
+      [L.RIGHT_KNEE,  angles.rightKnee,  'R무릎'],
+      [L.LEFT_KNEE,   angles.leftKnee,   'L무릎'],
+      [L.RIGHT_HIP,   angles.rightHip,   'R고관절'],
     ];
-
-    ctx.font = 'bold 13px monospace';
-
-    displayAngles.forEach(({ joint, angle, label }) => {
-      if (angle === null || angle === undefined) return;
-      const lm = landmarks[joint];
+    ctx.font = 'bold 12px monospace';
+    pairs.forEach(([idx, angle, label]) => {
+      if (angle == null) return;
+      const lm = landmarks[idx];
       if (!lm || lm.visibility < 0.5) return;
-
-      const x = lm.x * w + 10;
-      const y = lm.y * h - 5;
-
-      // 배경
+      const x = lm.x * w + 10, y = lm.y * h - 5;
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
-      ctx.fillRect(x - 2, y - 14, 70, 18);
-
-      // 텍스트
+      ctx.fillRect(x - 2, y - 14, 68, 18);
       ctx.fillStyle = angle > 90 ? '#00ffaa' : '#ffaa00';
       ctx.fillText(`${angle}°`, x, y);
     });
   }
 
-  /**
-   * 위험 부위 하이라이트
-   */
   _drawRiskHighlights(ctx, landmarks, risksByJoint) {
-    const w = this.canvas.width;
-    const h = this.canvas.height;
+    const w = this.canvas.width, h = this.canvas.height;
     const L = this.poseEngine.LANDMARKS;
-
-    const jointLandmarks = {
-      spine: [L.LEFT_SHOULDER, L.RIGHT_SHOULDER, L.LEFT_HIP, L.RIGHT_HIP],
-      knee: [L.LEFT_KNEE, L.RIGHT_KNEE],
+    const map = {
+      spine   : [L.LEFT_SHOULDER, L.RIGHT_SHOULDER, L.LEFT_HIP, L.RIGHT_HIP],
+      knee    : [L.LEFT_KNEE, L.RIGHT_KNEE],
       shoulder: [L.LEFT_SHOULDER, L.RIGHT_SHOULDER],
-      hip: [L.LEFT_HIP, L.RIGHT_HIP],
-      ankle: [L.LEFT_ANKLE, L.RIGHT_ANKLE]
+      hip     : [L.LEFT_HIP, L.RIGHT_HIP],
+      ankle   : [L.LEFT_ANKLE, L.RIGHT_ANKLE]
     };
-
     for (const [joint, risks] of Object.entries(risksByJoint)) {
-      const indices = jointLandmarks[joint];
-      if (!indices) continue;
-
-      const maxSeverity = risks.reduce((max, r) => {
-        const order = { critical: 4, high: 3, medium: 2, low: 1 };
-        return order[r.severity] > order[max] ? r.severity : max;
+      const idxs = map[joint]; if (!idxs) continue;
+      const maxSev = risks.reduce((mx, r) => {
+        const order = {critical:4,high:3,medium:2,low:1};
+        return order[r.severity] > order[mx] ? r.severity : mx;
       }, 'low');
-
-      const color = this.riskEngine.getRiskColor(
-        maxSeverity === 'critical' ? 90 :
-        maxSeverity === 'high' ? 65 :
-        maxSeverity === 'medium' ? 35 : 15
-      );
-
-      indices.forEach(idx => {
+      const score = maxSev==='critical'?90 : maxSev==='high'?65 : maxSev==='medium'?35 : 15;
+      const color = this.riskEngine.getRiskColor(score);
+      idxs.forEach(idx => {
         const lm = landmarks[idx];
         if (!lm || lm.visibility < 0.5) return;
-
-        const x = lm.x * w;
-        const y = lm.y * h;
-
         ctx.beginPath();
-        ctx.arc(x, y, 15, 0, Math.PI * 2);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = color;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+        ctx.arc(lm.x*w, lm.y*h, 15, 0, Math.PI*2);
+        ctx.strokeStyle = color; ctx.lineWidth = 3;
+        ctx.shadowBlur = 15; ctx.shadowColor = color;
+        ctx.stroke(); ctx.shadowBlur = 0;
       });
     }
   }
 
-  /**
-   * 반복 카운터 오버레이
-   */
   _drawRepCounter(ctx, w, h) {
     const reps = this.exerciseRecognition.repCount;
-    const exercise = this.exerciseRecognition.currentExercise;
-
-    if (!exercise) return;
-
-    // 반투명 배경
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(w - 110, 10, 100, 60);
-
-    // 반복 횟수
+    const ex   = this.exerciseRecognition.currentExercise;
+    if (!ex) return;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(w - 115, 10, 105, 65);
     ctx.fillStyle = '#00ffff';
-    ctx.font = 'bold 40px monospace';
+    ctx.font = 'bold 42px monospace';
     ctx.textAlign = 'right';
-    ctx.fillText(reps, w - 15, 60);
-
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.font = '12px monospace';
-    ctx.fillText('REPS', w - 15, 75);
-
+    ctx.fillText(reps, w - 14, 60);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '11px monospace';
+    ctx.fillText('REPS', w - 14, 75);
     ctx.textAlign = 'left';
   }
 
-  /**
-   * 피드백 처리 (음성 + 화면)
-   */
+  /* ── 피드백 ── */
   _processFeedback(formScore, riskAssessment) {
     const now = Date.now();
-
-    // 치명적 위험은 즉시 알림
     if (riskAssessment) {
-      const criticalRisk = riskAssessment.risks.find(r => r.severity === 'critical');
-      if (criticalRisk && now - this.lastVoiceFeedback > 2000) {
-        this._speakFeedback(criticalRisk.message, true);
-        this._showFeedbackMessage(criticalRisk.message, 'critical');
-        this.lastVoiceFeedback = now;
-        return;
+      const crit = riskAssessment.risks.find(r => r.severity === 'critical');
+      if (crit && now - this.lastVoiceFeedback > 2000) {
+        this._speakFeedback(crit.message, true);
+        this._showFeedbackMessage(crit.message, 'critical');
+        this.lastVoiceFeedback = now; return;
       }
     }
-
-    // 일반 자세 피드백 (4초 간격)
     if (now - this.lastVoiceFeedback > this.VOICE_COOLDOWN) {
-      if (formScore && formScore.feedback.length > 0) {
-        const topFeedback = formScore.feedback[0];
-        this._speakFeedback(topFeedback.message);
-        this._showFeedbackMessage(topFeedback.message, topFeedback.type);
+      if (formScore?.feedback?.length) {
+        const fb = formScore.feedback[0];
+        this._speakFeedback(fb.message);
+        this._showFeedbackMessage(fb.message, fb.type);
         this.lastVoiceFeedback = now;
-      } else if (formScore && formScore.total >= 85) {
-        // 자세가 좋을 때 칭찬
+      } else if (formScore?.total >= 85) {
         this._speakFeedback('현재 자세가 매우 안정적입니다! 계속하세요.');
         this.lastVoiceFeedback = now;
       }
     }
-
-    // 화면 피드백 업데이트
-    if (formScore && formScore.feedback.length > 0) {
-      formScore.feedback.slice(0, 2).forEach(fb => {
-        this._showFeedbackMessage(fb.message, fb.type);
-      });
+    if (formScore?.feedback?.length) {
+      formScore.feedback.slice(0,2).forEach(fb => this._showFeedbackMessage(fb.message, fb.type));
     }
   }
 
-  /**
-   * 음성 피드백
-   */
   _speakFeedback(text, priority = false) {
     if (!this.state.voiceEnabled || !this.speechSynthesis) return;
-
-    if (priority) {
-      this.speechSynthesis.cancel();
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ko-KR';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    utterance.volume = 0.9;
-
-    this.speechSynthesis.speak(utterance);
+    if (priority) this.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ko-KR'; u.rate = 1.0; u.volume = 0.9;
+    this.speechSynthesis.speak(u);
   }
 
-  /**
-   * 화면 피드백 메시지 표시
-   */
   _showFeedbackMessage(message, type = 'info') {
-    const container = document.getElementById('feedbackContainer');
-    if (!container) return;
-
-    // 중복 메시지 방지
-    const existing = [...container.querySelectorAll('.feedback-msg')]
-      .find(el => el.textContent.includes(message.slice(0, 20)));
-    if (existing) return;
-
+    const c = document.getElementById('feedbackContainer');
+    if (!c) return;
+    if ([...c.querySelectorAll('.feedback-msg')].find(el => el.textContent.includes(message.slice(0,20)))) return;
     const el = document.createElement('div');
     el.className = `feedback-msg feedback-${type}`;
     el.textContent = message;
-    container.appendChild(el);
-
-    // 3초 후 제거
-    setTimeout(() => {
-      el.classList.add('fade-out');
-      setTimeout(() => el.remove(), 500);
-    }, this.feedbackDisplayTime);
-
-    // 최대 3개 유지
-    const msgs = container.querySelectorAll('.feedback-msg');
+    c.appendChild(el);
+    setTimeout(() => { el.classList.add('fade-out'); setTimeout(() => el.remove(), 500); }, this.feedbackDisplayTime);
+    const msgs = c.querySelectorAll('.feedback-msg');
     if (msgs.length > 3) msgs[0].remove();
   }
 
-  /**
-   * 운동 감지 콜백
-   */
+  /* ── 이벤트 콜백들 ── */
   _onExerciseDetected(data) {
-    const exerciseEl = document.getElementById('detectedExercise');
-    if (exerciseEl && data.exercise) {
-      exerciseEl.textContent = data.exercise.name;
-      exerciseEl.style.color = '#00ffff';
-    }
-
-    if (data.previousExercise !== data.exercise) {
-      this._speakFeedback(`${data.exercise.name} 운동이 감지되었습니다.`);
-    }
-
-    // 운동 인식 신뢰도
+    if (!this.state.autoDetect) return;
+    const el = document.getElementById('detectedExercise');
+    if (el && data.exercise) { el.textContent = data.exercise.name; el.style.color = '#00ffff'; }
     const confEl = document.getElementById('exerciseConfidence');
-    if (confEl) {
-      confEl.textContent = `${Math.round(data.confidence * 100)}%`;
-    }
+    if (confEl) confEl.textContent = `${Math.round(data.confidence * 100)}%`;
+    const bar = document.getElementById('confidenceBar');
+    if (bar)   bar.style.width = Math.round(data.confidence * 100) + '%';
   }
 
-  /**
-   * 반복 카운트 콜백
-   */
   _onRepCounted(data) {
     this.repCount = data.count;
-
-    const repEl = document.getElementById('repCounter');
-    if (repEl) {
-      repEl.textContent = data.count;
-      repEl.classList.add('pulse');
-      setTimeout(() => repEl.classList.remove('pulse'), 300);
-    }
-
-    // 반복 품질 표시
-    if (data.quality !== null) {
-      const qualityEl = document.getElementById('repQuality');
-      if (qualityEl) {
-        qualityEl.textContent = data.quality + '점';
-        qualityEl.style.color = data.quality >= 80 ? '#00ff88' : data.quality >= 60 ? '#ffd700' : '#ff4444';
-      }
-    }
-
-    // 목표 달성 체크
-    if (this.state.repGoal > 0 && data.count >= this.state.repGoal) {
-      this._speakFeedback(`목표 ${this.state.repGoal}회 달성! 잘 하셨습니다!`);
+    const el = document.getElementById('repCounter');
+    if (el) { el.textContent = data.count; el.classList.add('pulse'); setTimeout(()=>el.classList.remove('pulse'),300); }
+    const qEl = document.getElementById('repQuality');
+    if (qEl && data.quality != null) {
+      qEl.textContent = data.quality + '점';
+      qEl.style.color = data.quality>=80?'#00ff88':data.quality>=60?'#ffd700':'#ff4444';
     }
   }
 
-  /**
-   * 세트 완료 콜백
-   */
-  _onSetComplete(setData) {
+  _onSetComplete(data) {
     this.setCount++;
-    this.dashboard.addSet(setData);
-
-    const setEl = document.getElementById('setCounter');
-    if (setEl) setEl.textContent = this.setCount + '세트';
-
-    this._showFeedbackMessage(`${setData.reps}회 완료! 자세 점수: ${setData.averageQuality}점`, 'success');
-    this._speakFeedback(`세트 완료! ${setData.reps}회 수행했습니다. 잠시 휴식하세요.`);
+    this.dashboard.addSet(data);
+    const el = document.getElementById('setCounter');
+    if (el) el.textContent = this.setCount;
+    this._showFeedbackMessage(`${data.reps}회 완료! 자세 점수: ${data.averageQuality}점`, 'success');
+    this._speakFeedback(`세트 완료! ${data.reps}회. 잠시 휴식하세요.`);
   }
 
-  /**
-   * 피로도 감지 콜백
-   */
   _onFatigueDetected(data) {
-    const fatigueEl = document.getElementById('fatigueIndicator');
-    if (fatigueEl) {
-      fatigueEl.textContent = data.level === 'high' ? '피로도 높음 ⚠️' : '피로도 감지';
-      fatigueEl.style.color = data.level === 'high' ? '#ff4444' : '#ffa500';
-    }
-
-    if (data.level === 'high') {
-      this._speakFeedback('피로도가 높습니다. 잠시 휴식을 취하세요.');
-    }
+    const el = document.getElementById('fatigueIndicator');
+    if (el) { el.textContent = data.level==='high'?'높음 ⚠️':'보통'; el.style.color = data.level==='high'?'#ff4444':'#ffa500'; }
+    if (data.level === 'high') this._speakFeedback('피로도가 높습니다. 잠시 휴식을 취하세요.');
   }
 
-  /**
-   * 위험 감지 콜백
-   */
   _onRiskDetected(data) {
-    const riskEl = document.getElementById('riskLevel');
-    if (riskEl) {
-      const label = this.riskEngine.getSafetyLabel(100 - data.risk.score);
-      riskEl.textContent = label.label;
-      riskEl.style.color = label.color;
-    }
-
+    const el = document.getElementById('safetyScore');
+    if (el) { const lb = this.riskEngine.getSafetyLabel(100 - data.risk.score); el.textContent = lb.label; el.style.color = lb.color; }
     this._speakFeedback(data.risk.message, true);
     this._showFeedbackMessage(data.risk.message, 'error');
   }
 
-  /**
-   * 실시간 UI 업데이트
-   */
+  /* ── 실시간 UI 업데이트 ── */
   _updateRealTimeUI(formScore, riskAssessment, detection) {
-    // 자세 점수 업데이트
     if (formScore) {
       const scoreEl = document.getElementById('formScore');
-      if (scoreEl) {
-        scoreEl.textContent = formScore.total;
-        scoreEl.style.color = formScore.total >= 80 ? '#00ff88' : formScore.total >= 60 ? '#ffd700' : '#ff4444';
-      }
-
-      // 점수 게이지
+      if (scoreEl) { scoreEl.textContent = formScore.total; scoreEl.style.color = formScore.total>=80?'#00ff88':formScore.total>=60?'#ffd700':'#ff4444'; }
       const gaugeEl = document.getElementById('scoreGauge');
-      if (gaugeEl) {
-        gaugeEl.style.width = formScore.total + '%';
-        gaugeEl.style.background = formScore.total >= 80 ? '#00ff88' : formScore.total >= 60 ? '#ffd700' : '#ff4444';
-      }
-
-      // 등급
+      if (gaugeEl) { gaugeEl.style.width = formScore.total+'%'; gaugeEl.style.background = formScore.total>=80?'#00ff88':formScore.total>=60?'#ffd700':'#ff4444'; }
       const gradeEl = document.getElementById('formGrade');
-      if (gradeEl && formScore.grade) {
-        gradeEl.textContent = formScore.grade.grade;
-        gradeEl.style.color = formScore.grade.color;
-      }
+      if (gradeEl && formScore.grade) { gradeEl.textContent = formScore.grade.grade; gradeEl.style.color = formScore.grade.color; }
 
-      // 세부 점수 바 업데이트
-      const components = formScore.components;
-      Object.entries(components).forEach(([key, value]) => {
-        const barEl = document.getElementById(`score-${key}`);
-        if (barEl) {
-          barEl.style.width = value + '%';
-        }
-      });
+      const c = formScore.components;
+      [['score-posture',c.posture],['score-rangeOfMotion',c.rangeOfMotion],['score-stability',c.stability],['score-symmetry',c.symmetry],['score-tempo',c.tempo],['score-control',c.control]]
+        .forEach(([id,v])=>{ const el=document.getElementById(id); if(el&&v!=null) el.style.width=v+'%'; });
+      [['val-posture',c.posture],['val-rom',c.rangeOfMotion],['val-stability',c.stability],['val-symmetry',c.symmetry],['val-tempo',c.tempo]]
+        .forEach(([id,v])=>{ const el=document.getElementById(id); if(el) el.textContent=v??'--'; });
+
+      // AI 코치
+      const coachEl = document.getElementById('aiCoachMessages');
+      if (coachEl) {
+        if (formScore.feedback?.length) {
+          coachEl.textContent = formScore.feedback[0].message;
+          coachEl.style.color = formScore.feedback[0].type==='error'?'var(--neon-red)':formScore.feedback[0].type==='warning'?'var(--neon-orange)':'var(--text-mid)';
+        } else if (formScore.total>=85) { coachEl.textContent='✓ 자세가 안정적입니다. 계속 유지하세요!'; coachEl.style.color='var(--neon-green)'; }
+      }
     }
 
-    // 안전 점수 업데이트
     if (riskAssessment) {
-      const safetyEl = document.getElementById('safetyScore');
-      if (safetyEl) {
-        const label = this.riskEngine.getSafetyLabel(riskAssessment.safetyScore);
-        safetyEl.textContent = label.label;
-        safetyEl.style.color = label.color;
-      }
-
-      const safetyBarEl = document.getElementById('safetyGauge');
-      if (safetyBarEl) {
-        safetyBarEl.style.width = riskAssessment.safetyScore + '%';
-      }
+      const lb = this.riskEngine.getSafetyLabel(riskAssessment.safetyScore);
+      const el = document.getElementById('safetyScore'); if(el){el.textContent=lb.label; el.style.color=lb.color;}
+      const gb = document.getElementById('safetyGauge'); if(gb) gb.style.width=riskAssessment.safetyScore+'%';
+      const wr = document.getElementById('riskWarnings');
+      if (wr) wr.textContent = riskAssessment.risks[0]?.message || '';
     }
 
-    // FPS 표시
-    const fpsEl = document.getElementById('fpsCounter');
-    if (fpsEl) fpsEl.textContent = this.poseEngine.fps + ' FPS';
-
-    // 포즈 신뢰도
-    const confEl = document.getElementById('poseConfidence');
-    if (confEl && detection) {
-      confEl.textContent = Math.round(detection.confidence * 100) + '%';
+    const fpsEl = document.getElementById('fpsCounter'); if(fpsEl) fpsEl.textContent = this.poseEngine.fps+' FPS';
+    const cDot  = document.getElementById('cameraStatusDot');
+    const cTxt  = document.getElementById('cameraStatusText');
+    if (cDot && cTxt) {
+      const live = this.state.isRunning && !this.state.isPaused;
+      cDot.classList.toggle('active', live);
+      cTxt.textContent = this.state.isPaused ? 'PAUSED' : live ? 'LIVE' : 'STANDBY';
     }
   }
 
-  /**
-   * 현재 세트 완료
-   */
+  /* ── 세트 완료 ── */
   completeCurrentSet() {
-    const setData = this.exerciseRecognition.completeSet(this.state.weightInput);
-    if (!setData) {
-      this._showFeedbackMessage('완료할 반복 횟수가 없습니다.', 'warning');
-    }
+    const data = this.exerciseRecognition.completeSet(this.state.weightInput);
+    if (data) this._onSetComplete(data);
   }
 
-  /**
-   * 반복 횟수 리셋
-   */
   resetReps() {
     this.exerciseRecognition._resetRepState();
-    const repEl = document.getElementById('repCounter');
-    if (repEl) repEl.textContent = '0';
-    const qualityEl = document.getElementById('repQuality');
-    if (qualityEl) qualityEl.textContent = '--';
+    const el = document.getElementById('repCounter'); if(el) el.textContent='0';
   }
 
-  /**
-   * 세션 종료
-   */
-  async endSession() {
-    if (this.state.isRunning) {
-      this.sessionElapsedMs = this.sessionStartTime ? Date.now() - this.sessionStartTime : this.sessionElapsedMs;
-    }
-
-    this.state.isRunning = false;
-    this.state.isPaused = false;
-    this.state.isSessionEnded = true;
-    clearInterval(this.sessionTimer);
-    this.sessionTimer = null;
-
-    if (this.poseEngine) await this.poseEngine.stopCamera();
-    this._clearCanvas();
-    if (this.speechSynthesis) this.speechSynthesis.cancel();
-
-    const sessionData = await this.dashboard.endSession();
-
-    document.getElementById('btnStart')?.classList.remove('hidden');
-    document.getElementById('btnStop')?.classList.add('hidden');
-    document.getElementById('workoutControls')?.classList.add('hidden');
-    document.getElementById('exerciseSelect')?.removeAttribute('disabled');
-    const startBtn = document.getElementById('btnStart');
-    if (startBtn) startBtn.textContent = '▶ 운동 시작';
-
-    this.exerciseRecognition.resetSession();
-    this.sessionStartTime = null;
-    this.sessionElapsedMs = 0;
-    this._updateStatus('세션이 완전히 종료되었습니다');
-
-    if (sessionData) {
-      const totalSets = sessionData.sets?.length || 0;
-      const totalReps = sessionData.totalReps || 0;
-      this._speakFeedback(`운동 완료! 총 ${totalSets}세트, ${totalReps}회 운동했습니다.`);
-    }
-
-    this.showDashboard();
-  }
-
-  /**
-   * 대시보드 표시
-   */
-  async showDashboard() {
-    this.state.currentView = 'dashboard';
-    document.getElementById('workoutView')?.classList.add('hidden');
-    document.getElementById('dashboardView')?.classList.remove('hidden');
-    await this.dashboard.renderDashboard('dashboardContainer');
-  }
-
-  /**
-   * 운동 화면 표시
-   */
-  showWorkout() {
-    this.state.currentView = 'workout';
-    document.getElementById('workoutView')?.classList.remove('hidden');
-    document.getElementById('dashboardView')?.classList.add('hidden');
-  }
-
-  /**
-   * 음성 토글
-   */
+  /* ── 토글류 ── */
   toggleVoice() {
     this.state.voiceEnabled = !this.state.voiceEnabled;
     const btn = document.getElementById('btnVoice');
-    if (btn) {
-      btn.textContent = this.state.voiceEnabled ? '🔊' : '🔇';
-      btn.title = this.state.voiceEnabled ? '음성 피드백 켜짐' : '음성 피드백 꺼짐';
-    }
+    if (btn) { btn.textContent = this.state.voiceEnabled ? '🔊' : '🔇'; btn.classList.toggle('active', this.state.voiceEnabled); }
   }
-
-  /**
-   * 스켈레톤 토글
-   */
   toggleSkeleton() {
     this.state.showSkeleton = !this.state.showSkeleton;
-    const btn = document.getElementById('btnSkeleton');
-    if (btn) {
-      btn.classList.toggle('active', this.state.showSkeleton);
-    }
+    document.getElementById('btnSkeleton')?.classList.toggle('active', this.state.showSkeleton);
+    if (!this.state.showSkeleton) this._clearCanvas();
   }
 
-  /**
-   * 세션 타이머 업데이트
-   */
-  _updateSessionTimer() {
-    if (!this.sessionStartTime) return;
-    const elapsed = this.state.isRunning ? Date.now() - this.sessionStartTime : this.sessionElapsedMs;
-    const minutes = Math.floor(elapsed / 60000);
-    const seconds = Math.floor((elapsed % 60000) / 1000);
-
-    const timerEl = document.getElementById('sessionTimer');
-    if (timerEl) {
-      timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-  }
-
-  /**
-   * UI 루프 시작
-   */
-  _startUILoop() {
-    setInterval(() => {
-      if (!this.state.isRunning) return;
-      const pose = this.poseEngine.getCurrentPose();
-      // 추가 UI 업데이트
-    }, 100);
-  }
-
-  /**
-   * 캔버스 리사이즈
-   */
+  /* ── 유틸 ── */
   _resizeCanvas() {
-    if (!this.canvas || !this.videoElement) return;
-
-    const container = this.canvas.parentElement;
-    if (container) {
-      this.canvas.width = container.offsetWidth;
-      this.canvas.height = container.offsetHeight;
-    }
+    if (!this.canvas) return;
+    const p = this.canvas.parentElement;
+    if (p) { this.canvas.width = p.offsetWidth; this.canvas.height = p.offsetHeight; }
   }
-
-  /**
-   * 캔버스 클리어
-   */
-  _clearCanvas() {
-    if (this.ctx && this.canvas) {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-  }
-
-  /**
-   * 상태 메시지 업데이트
-   */
-  _updateStatus(message) {
-    const statusEl = document.getElementById('statusMessage');
-    if (statusEl) statusEl.textContent = message;
-  }
-
-  /**
-   * 에러 표시
-   */
-  _showError(message) {
-    console.error('[App] Error:', message);
-    this._updateStatus('오류: ' + message);
-
-    const errorEl = document.getElementById('errorMessage');
-    if (errorEl) {
-      errorEl.textContent = message;
-      errorEl.classList.remove('hidden');
-      setTimeout(() => errorEl.classList.add('hidden'), 5000);
-    }
+  _clearCanvas() { if(this.ctx&&this.canvas) this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height); }
+  _updateStatus(msg) { const el=document.getElementById('statusMessage'); if(el) el.textContent=msg; }
+  _showError(msg) {
+    console.error('[App]',msg);
+    const el=document.getElementById('errorMessage');
+    if(el){el.textContent=msg; el.classList.remove('hidden'); setTimeout(()=>el.classList.add('hidden'),5000);}
   }
 }
 
-// 앱 초기화
 document.addEventListener('DOMContentLoaded', async () => {
   window.app = new App();
   await window.app.initialize();
