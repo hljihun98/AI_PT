@@ -4,12 +4,33 @@
       "id": "squat",
       "name": "스쿼트",
       "category": "freeweight",
-      "muscleGroups": ["quadriceps", "glutes", "hamstrings", "core"],
+      "muscleGroups": [
+        "quadriceps",
+        "glutes",
+        "hamstrings",
+        "core"
+      ],
       "keyAngles": {
-        "knee": { "min": 70, "max": 160, "optimal": 90 },
-        "hip": { "min": 60, "max": 170, "optimal": 90 },
-        "ankle": { "min": 70, "max": 110, "optimal": 85 },
-        "spine": { "min": 160, "max": 180, "optimal": 175 }
+        "knee": {
+          "min": 70,
+          "max": 160,
+          "optimal": 90
+        },
+        "hip": {
+          "min": 60,
+          "max": 170,
+          "optimal": 90
+        },
+        "ankle": {
+          "min": 70,
+          "max": 110,
+          "optimal": 85
+        },
+        "spine": {
+          "min": 160,
+          "max": 180,
+          "optimal": 175
+        }
       },
       "repDetection": {
         "primaryJoint": "knee",
@@ -18,21 +39,63 @@
         "direction": "down_up"
       },
       "commonErrors": [
-        { "id": "knee_valgus", "message": "무릎이 안쪽으로 모이고 있습니다. 발끝 방향으로 무릎을 유지하세요." },
-        { "id": "forward_lean", "message": "상체가 과도하게 앞으로 기울고 있습니다. 가슴을 세워주세요." },
-        { "id": "heel_lift", "message": "발뒤꿈치가 들리고 있습니다. 발바닥 전체로 지면을 밟으세요." },
-        { "id": "depth_insufficient", "message": "가동범위가 부족합니다. 허벅지가 지면과 평행이 될 때까지 내려가세요." }
+        {
+          "id": "knee_valgus",
+          "message": "무릎이 안쪽으로 모이고 있습니다. 발끝 방향으로 무릎을 유지하세요."
+        },
+        {
+          "id": "forward_lean",
+          "message": "상체가 과도하게 앞으로 기울고 있습니다. 가슴을 세워주세요."
+        },
+        {
+          "id": "heel_lift",
+          "message": "발뒤꿈치가 들리고 있습니다. 발바닥 전체로 지면을 밟으세요."
+        },
+        {
+          "id": "depth_insufficient",
+          "message": "가동범위가 부족합니다. 허벅지가 지면과 평행이 될 때까지 내려가세요."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "deadlift": {
       "id": "deadlift",
       "name": "데드리프트",
       "category": "freeweight",
-      "muscleGroups": ["hamstrings", "glutes", "back", "traps", "core"],
+      "muscleGroups": [
+        "hamstrings",
+        "glutes",
+        "back",
+        "traps",
+        "core"
+      ],
       "keyAngles": {
-        "hip": { "min": 45, "max": 175, "optimal": 170 },
-        "knee": { "min": 100, "max": 175, "optimal": 165 },
-        "spine": { "min": 155, "max": 180, "optimal": 175 }
+        "hip": {
+          "min": 45,
+          "max": 175,
+          "optimal": 170
+        },
+        "knee": {
+          "min": 100,
+          "max": 175,
+          "optimal": 165
+        },
+        "spine": {
+          "min": 155,
+          "max": 180,
+          "optimal": 175
+        }
       },
       "repDetection": {
         "primaryJoint": "hip",
@@ -41,19 +104,52 @@
         "direction": "up"
       },
       "commonErrors": [
-        { "id": "lumbar_flexion", "message": "허리가 굽어있습니다. 척추 중립 자세를 유지하세요." },
-        { "id": "bar_path", "message": "바벨이 몸에서 멀어지고 있습니다. 바를 몸에 붙여서 당기세요." },
-        { "id": "hip_rise", "message": "엉덩이가 너무 빨리 올라가고 있습니다." }
+        {
+          "id": "lumbar_flexion",
+          "message": "허리가 굽어있습니다. 척추 중립 자세를 유지하세요."
+        },
+        {
+          "id": "bar_path",
+          "message": "바벨이 몸에서 멀어지고 있습니다. 바를 몸에 붙여서 당기세요."
+        },
+        {
+          "id": "hip_rise",
+          "message": "엉덩이가 너무 빨리 올라가고 있습니다."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "bench_press": {
       "id": "bench_press",
       "name": "벤치프레스",
       "category": "freeweight",
-      "muscleGroups": ["chest", "anterior_deltoid", "triceps"],
+      "muscleGroups": [
+        "chest",
+        "anterior_deltoid",
+        "triceps"
+      ],
       "keyAngles": {
-        "elbow": { "min": 60, "max": 170, "optimal": 90 },
-        "shoulder": { "min": 45, "max": 90, "optimal": 75 }
+        "elbow": {
+          "min": 60,
+          "max": 170,
+          "optimal": 90
+        },
+        "shoulder": {
+          "min": 45,
+          "max": 90,
+          "optimal": 75
+        }
       },
       "repDetection": {
         "primaryJoint": "elbow",
@@ -62,20 +158,58 @@
         "direction": "up_down"
       },
       "commonErrors": [
-        { "id": "elbow_flare", "message": "팔꿈치가 너무 벌어지고 있습니다. 45-75도를 유지하세요." },
-        { "id": "arch_excessive", "message": "허리 아치가 과도합니다." },
-        { "id": "uneven_bar", "message": "좌우 균형이 맞지 않습니다." }
+        {
+          "id": "elbow_flare",
+          "message": "팔꿈치가 너무 벌어지고 있습니다. 45-75도를 유지하세요."
+        },
+        {
+          "id": "arch_excessive",
+          "message": "허리 아치가 과도합니다."
+        },
+        {
+          "id": "uneven_bar",
+          "message": "좌우 균형이 맞지 않습니다."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "push_up": {
       "id": "push_up",
       "name": "푸시업",
       "category": "bodyweight",
-      "muscleGroups": ["chest", "triceps", "anterior_deltoid", "core"],
+      "muscleGroups": [
+        "chest",
+        "triceps",
+        "anterior_deltoid",
+        "core"
+      ],
       "keyAngles": {
-        "elbow": { "min": 60, "max": 170, "optimal": 90 },
-        "shoulder": { "min": 40, "max": 90, "optimal": 70 },
-        "spine": { "min": 165, "max": 180, "optimal": 178 }
+        "elbow": {
+          "min": 60,
+          "max": 170,
+          "optimal": 90
+        },
+        "shoulder": {
+          "min": 40,
+          "max": 90,
+          "optimal": 70
+        },
+        "spine": {
+          "min": 165,
+          "max": 180,
+          "optimal": 178
+        }
       },
       "repDetection": {
         "primaryJoint": "elbow",
@@ -84,20 +218,57 @@
         "direction": "up_down"
       },
       "commonErrors": [
-        { "id": "hip_sag", "message": "엉덩이가 처지고 있습니다. 코어를 긴장시켜 몸을 일직선으로 유지하세요." },
-        { "id": "hip_pike", "message": "엉덩이가 너무 올라가 있습니다." },
-        { "id": "head_drop", "message": "머리가 아래로 처지고 있습니다. 시선을 바닥 앞쪽에 고정하세요." }
+        {
+          "id": "hip_sag",
+          "message": "엉덩이가 처지고 있습니다. 코어를 긴장시켜 몸을 일직선으로 유지하세요."
+        },
+        {
+          "id": "hip_pike",
+          "message": "엉덩이가 너무 올라가 있습니다."
+        },
+        {
+          "id": "head_drop",
+          "message": "머리가 아래로 처지고 있습니다. 시선을 바닥 앞쪽에 고정하세요."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "overhead_press": {
       "id": "overhead_press",
       "name": "오버헤드 프레스",
       "category": "freeweight",
-      "muscleGroups": ["deltoids", "triceps", "upper_trapezius"],
+      "muscleGroups": [
+        "deltoids",
+        "triceps",
+        "upper_trapezius"
+      ],
       "keyAngles": {
-        "elbow": { "min": 60, "max": 175, "optimal": 170 },
-        "shoulder": { "min": 80, "max": 180, "optimal": 175 },
-        "spine": { "min": 165, "max": 180, "optimal": 175 }
+        "elbow": {
+          "min": 60,
+          "max": 175,
+          "optimal": 170
+        },
+        "shoulder": {
+          "min": 80,
+          "max": 180,
+          "optimal": 175
+        },
+        "spine": {
+          "min": 165,
+          "max": 180,
+          "optimal": 175
+        }
       },
       "repDetection": {
         "primaryJoint": "elbow",
@@ -106,19 +277,53 @@
         "direction": "up_down"
       },
       "commonErrors": [
-        { "id": "lumbar_hyperextension", "message": "허리가 과도하게 뒤로 젖혀집니다. 복근에 힘을 주세요." },
-        { "id": "wrist_bend", "message": "손목이 꺾이고 있습니다. 손목을 중립으로 유지하세요." }
+        {
+          "id": "lumbar_hyperextension",
+          "message": "허리가 과도하게 뒤로 젖혀집니다. 복근에 힘을 주세요."
+        },
+        {
+          "id": "wrist_bend",
+          "message": "손목이 꺾이고 있습니다. 손목을 중립으로 유지하세요."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "plank": {
       "id": "plank",
       "name": "플랭크",
       "category": "bodyweight",
-      "muscleGroups": ["core", "shoulders", "glutes"],
+      "muscleGroups": [
+        "core",
+        "shoulders",
+        "glutes"
+      ],
       "keyAngles": {
-        "hip": { "min": 170, "max": 185, "optimal": 180 },
-        "shoulder": { "min": 85, "max": 95, "optimal": 90 },
-        "spine": { "min": 170, "max": 185, "optimal": 180 }
+        "hip": {
+          "min": 170,
+          "max": 185,
+          "optimal": 180
+        },
+        "shoulder": {
+          "min": 85,
+          "max": 95,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 170,
+          "max": 185,
+          "optimal": 180
+        }
       },
       "repDetection": {
         "primaryJoint": "hip",
@@ -126,20 +331,57 @@
         "direction": "hold"
       },
       "commonErrors": [
-        { "id": "hip_sag", "message": "엉덩이가 처지고 있습니다. 코어에 힘을 주세요." },
-        { "id": "hip_pike", "message": "엉덩이가 올라가 있습니다. 몸을 일직선으로 만들어주세요." },
-        { "id": "shoulder_shrug", "message": "어깨가 귀 방향으로 올라가고 있습니다." }
+        {
+          "id": "hip_sag",
+          "message": "엉덩이가 처지고 있습니다. 코어에 힘을 주세요."
+        },
+        {
+          "id": "hip_pike",
+          "message": "엉덩이가 올라가 있습니다. 몸을 일직선으로 만들어주세요."
+        },
+        {
+          "id": "shoulder_shrug",
+          "message": "어깨가 귀 방향으로 올라가고 있습니다."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "romanian_deadlift": {
       "id": "romanian_deadlift",
       "name": "루마니안 데드리프트",
       "category": "freeweight",
-      "muscleGroups": ["hamstrings", "glutes", "lower_back"],
+      "muscleGroups": [
+        "hamstrings",
+        "glutes",
+        "lower_back"
+      ],
       "keyAngles": {
-        "hip": { "min": 50, "max": 175, "optimal": 170 },
-        "knee": { "min": 155, "max": 175, "optimal": 168 },
-        "spine": { "min": 160, "max": 180, "optimal": 175 }
+        "hip": {
+          "min": 50,
+          "max": 175,
+          "optimal": 170
+        },
+        "knee": {
+          "min": 155,
+          "max": 175,
+          "optimal": 168
+        },
+        "spine": {
+          "min": 160,
+          "max": 180,
+          "optimal": 175
+        }
       },
       "repDetection": {
         "primaryJoint": "hip",
@@ -148,18 +390,48 @@
         "direction": "up"
       },
       "commonErrors": [
-        { "id": "lumbar_flexion", "message": "허리가 굽어있습니다. 등을 평평하게 유지하세요." },
-        { "id": "knee_bend", "message": "무릎이 과도하게 굽어지고 있습니다. 무릎을 살짝만 구부리세요." }
+        {
+          "id": "lumbar_flexion",
+          "message": "허리가 굽어있습니다. 등을 평평하게 유지하세요."
+        },
+        {
+          "id": "knee_bend",
+          "message": "무릎이 과도하게 굽어지고 있습니다. 무릎을 살짝만 구부리세요."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "pull_up": {
       "id": "pull_up",
       "name": "풀업",
       "category": "bodyweight",
-      "muscleGroups": ["latissimus_dorsi", "biceps", "rear_deltoid"],
+      "muscleGroups": [
+        "latissimus_dorsi",
+        "biceps",
+        "rear_deltoid"
+      ],
       "keyAngles": {
-        "elbow": { "min": 40, "max": 170, "optimal": 50 },
-        "shoulder": { "min": 30, "max": 175, "optimal": 40 }
+        "elbow": {
+          "min": 40,
+          "max": 170,
+          "optimal": 50
+        },
+        "shoulder": {
+          "min": 30,
+          "max": 175,
+          "optimal": 40
+        }
       },
       "repDetection": {
         "primaryJoint": "elbow",
@@ -168,19 +440,53 @@
         "direction": "up_down"
       },
       "commonErrors": [
-        { "id": "kipping", "message": "몸을 흔들지 마세요. 순수한 근력으로 당겨주세요." },
-        { "id": "partial_range", "message": "완전한 가동범위로 실시하세요. 팔을 완전히 펴주세요." }
+        {
+          "id": "kipping",
+          "message": "몸을 흔들지 마세요. 순수한 근력으로 당겨주세요."
+        },
+        {
+          "id": "partial_range",
+          "message": "완전한 가동범위로 실시하세요. 팔을 완전히 펴주세요."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "dumbbell_row": {
       "id": "dumbbell_row",
       "name": "덤벨 로우",
       "category": "freeweight",
-      "muscleGroups": ["latissimus_dorsi", "rhomboids", "biceps"],
+      "muscleGroups": [
+        "latissimus_dorsi",
+        "rhomboids",
+        "biceps"
+      ],
       "keyAngles": {
-        "elbow": { "min": 50, "max": 170, "optimal": 60 },
-        "shoulder": { "min": 0, "max": 60, "optimal": 20 },
-        "spine": { "min": 160, "max": 180, "optimal": 175 }
+        "elbow": {
+          "min": 50,
+          "max": 170,
+          "optimal": 60
+        },
+        "shoulder": {
+          "min": 0,
+          "max": 60,
+          "optimal": 20
+        },
+        "spine": {
+          "min": 160,
+          "max": 180,
+          "optimal": 175
+        }
       },
       "repDetection": {
         "primaryJoint": "elbow",
@@ -189,18 +495,46 @@
         "direction": "up_down"
       },
       "commonErrors": [
-        { "id": "hip_rotation", "message": "골반이 회전하고 있습니다. 몸통을 고정하세요." },
-        { "id": "shoulder_shrug", "message": "어깨를 귀 방향으로 들지 마세요." }
+        {
+          "id": "hip_rotation",
+          "message": "골반이 회전하고 있습니다. 몸통을 고정하세요."
+        },
+        {
+          "id": "shoulder_shrug",
+          "message": "어깨를 귀 방향으로 들지 마세요."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
       ]
     },
     "burpee": {
       "id": "burpee",
       "name": "버피",
       "category": "bodyweight",
-      "muscleGroups": ["full_body"],
+      "muscleGroups": [
+        "full_body"
+      ],
       "keyAngles": {
-        "hip": { "min": 50, "max": 180, "optimal": 170 },
-        "knee": { "min": 60, "max": 175, "optimal": 170 }
+        "hip": {
+          "min": 50,
+          "max": 180,
+          "optimal": 170
+        },
+        "knee": {
+          "min": 60,
+          "max": 175,
+          "optimal": 170
+        }
       },
       "repDetection": {
         "primaryJoint": "hip",
@@ -209,20 +543,1212 @@
         "direction": "full_cycle"
       },
       "commonErrors": [
-        { "id": "hip_sag", "message": "플랭크 자세에서 엉덩이가 처지고 있습니다." }
+        {
+          "id": "hip_sag",
+          "message": "플랭크 자세에서 엉덩이가 처지고 있습니다."
+        }
+      ],
+      "purpose": "근력 향상과 자세 제어 능력 개선",
+      "benefits": "목표 근육 강화, 관절 안정성 향상, 운동 수행 능력 개선",
+      "instructions": [
+        "시작 자세를 안정적으로 잡습니다.",
+        "관절 정렬을 유지하며 천천히 움직입니다.",
+        "반동 없이 목표 근육의 긴장을 느끼며 반복합니다."
+      ],
+      "precautions": [
+        "통증이 있으면 즉시 중단하세요.",
+        "허리와 무릎이 과하게 꺾이지 않게 주의하세요.",
+        "초보자는 가벼운 무게와 작은 범위부터 시작하세요."
+      ]
+    },
+    "bodyweight_lunge": {
+      "id": "bodyweight_lunge",
+      "name": "런지",
+      "category": "bodyweight",
+      "muscleGroups": [
+        "quadriceps",
+        "glutes",
+        "hamstrings",
+        "core"
+      ],
+      "purpose": "하체 근력과 균형 향상",
+      "benefits": "허벅지·엉덩이 강화, 좌우 균형 개선",
+      "instructions": [
+        "한 발을 앞으로 내딛고 상체를 세웁니다.",
+        "앞무릎이 발끝 방향으로 향하게 내려갑니다.",
+        "앞발 뒤꿈치로 밀어 시작 자세로 돌아옵니다."
+      ],
+      "precautions": [
+        "무릎이 안쪽으로 무너지지 않게 하세요.",
+        "허리가 꺾이지 않게 복부에 힘을 주세요."
+      ],
+      "keyAngles": {
+        "knee": {
+          "min": 60,
+          "max": 175,
+          "optimal": 100
+        },
+        "hip": {
+          "min": 50,
+          "max": 180,
+          "optimal": 110
+        },
+        "spine": {
+          "min": 155,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "knee",
+        "bottomThreshold": 95,
+        "topThreshold": 160,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "glute_bridge": {
+      "id": "glute_bridge",
+      "name": "글루트 브릿지",
+      "category": "bodyweight",
+      "muscleGroups": [
+        "glutes",
+        "hamstrings",
+        "core"
+      ],
+      "purpose": "둔근 활성화",
+      "benefits": "엉덩이 힘과 골반 안정성 향상",
+      "instructions": [
+        "누워서 무릎을 세우고 발을 골반 너비로 둡니다.",
+        "엉덩이를 조이며 골반을 들어 올립니다.",
+        "허리가 아닌 엉덩이 힘으로 천천히 내립니다."
+      ],
+      "precautions": [
+        "허리를 과하게 꺾지 마세요."
+      ],
+      "keyAngles": {
+        "hip": {
+          "min": 90,
+          "max": 180,
+          "optimal": 175
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "bottomThreshold": 110,
+        "topThreshold": 165,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "mountain_climber": {
+      "id": "mountain_climber",
+      "name": "마운틴 클라이머",
+      "category": "cardio",
+      "muscleGroups": [
+        "core",
+        "hip_flexors",
+        "shoulders"
+      ],
+      "purpose": "심박수 상승과 코어 강화",
+      "benefits": "유산소 능력과 복부 안정성 향상",
+      "instructions": [
+        "푸시업 자세를 만듭니다.",
+        "한쪽 무릎을 가슴 쪽으로 당깁니다.",
+        "좌우 다리를 리듬 있게 교차합니다."
+      ],
+      "precautions": [
+        "엉덩이가 들리거나 처지지 않게 하세요."
+      ],
+      "keyAngles": {
+        "hip": {
+          "min": 45,
+          "max": 180,
+          "optimal": 120
+        },
+        "knee": {
+          "min": 45,
+          "max": 175,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "bottomThreshold": 80,
+        "topThreshold": 150,
+        "direction": "full_cycle"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "jumping_jack": {
+      "id": "jumping_jack",
+      "name": "점핑잭",
+      "category": "cardio",
+      "muscleGroups": [
+        "full_body",
+        "calves",
+        "shoulders"
+      ],
+      "purpose": "전신 워밍업과 심폐 향상",
+      "benefits": "체온 상승, 전신 순환 개선",
+      "instructions": [
+        "발을 모으고 섭니다.",
+        "점프하며 팔과 다리를 벌립니다.",
+        "다시 점프해 시작 자세로 돌아옵니다."
+      ],
+      "precautions": [
+        "무릎과 발목 충격을 줄이기 위해 부드럽게 착지하세요."
+      ],
+      "keyAngles": {
+        "shoulder": {
+          "min": 20,
+          "max": 180,
+          "optimal": 160
+        },
+        "hip": {
+          "min": 140,
+          "max": 180,
+          "optimal": 170
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "shoulder",
+        "bottomThreshold": 40,
+        "topThreshold": 150,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "high_knees": {
+      "id": "high_knees",
+      "name": "하이 니",
+      "category": "cardio",
+      "muscleGroups": [
+        "hip_flexors",
+        "quadriceps",
+        "core",
+        "calves"
+      ],
+      "purpose": "심폐 지구력 향상",
+      "benefits": "심박수 증가, 고관절 움직임 개선",
+      "instructions": [
+        "상체를 세우고 제자리에서 뜁니다.",
+        "무릎을 골반 높이까지 들어 올립니다.",
+        "팔을 자연스럽게 흔듭니다."
+      ],
+      "precautions": [
+        "허리가 뒤로 젖혀지지 않게 복부에 힘을 주세요."
+      ],
+      "keyAngles": {
+        "hip": {
+          "min": 60,
+          "max": 180,
+          "optimal": 90
+        },
+        "knee": {
+          "min": 60,
+          "max": 175,
+          "optimal": 90
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "bottomThreshold": 85,
+        "topThreshold": 155,
+        "direction": "full_cycle"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "dumbbell_curl": {
+      "id": "dumbbell_curl",
+      "name": "덤벨 컬",
+      "category": "dumbbell",
+      "muscleGroups": [
+        "biceps"
+      ],
+      "purpose": "이두근 강화",
+      "benefits": "팔 앞쪽 근력과 근지구력 향상",
+      "instructions": [
+        "팔꿈치를 몸 옆에 고정합니다.",
+        "덤벨을 어깨 방향으로 들어 올립니다.",
+        "천천히 내려 팔을 거의 폅니다."
+      ],
+      "precautions": [
+        "몸을 반동으로 흔들지 마세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 45,
+          "max": 170,
+          "optimal": 60
+        },
+        "shoulder": {
+          "min": 0,
+          "max": 45,
+          "optimal": 20
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 155,
+        "topThreshold": 60,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "dumbbell_lateral_raise": {
+      "id": "dumbbell_lateral_raise",
+      "name": "덤벨 레터럴 레이즈",
+      "category": "dumbbell",
+      "muscleGroups": [
+        "deltoids"
+      ],
+      "purpose": "어깨 측면 강화",
+      "benefits": "어깨 라인과 견관절 안정성 향상",
+      "instructions": [
+        "덤벨을 몸 옆에 둡니다.",
+        "팔꿈치를 살짝 굽힌 채 어깨 높이까지 올립니다.",
+        "천천히 시작 자세로 내립니다."
+      ],
+      "precautions": [
+        "승모근으로 으쓱하지 마세요."
+      ],
+      "keyAngles": {
+        "shoulder": {
+          "min": 20,
+          "max": 110,
+          "optimal": 90
+        },
+        "elbow": {
+          "min": 130,
+          "max": 175,
+          "optimal": 160
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "shoulder",
+        "bottomThreshold": 30,
+        "topThreshold": 90,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "dumbbell_shoulder_press": {
+      "id": "dumbbell_shoulder_press",
+      "name": "덤벨 숄더 프레스",
+      "category": "dumbbell",
+      "muscleGroups": [
+        "deltoids",
+        "triceps"
+      ],
+      "purpose": "어깨와 삼두근 강화",
+      "benefits": "상체 밀기 근력 향상",
+      "instructions": [
+        "덤벨을 어깨 옆에 둡니다.",
+        "팔을 위로 밀어 올립니다.",
+        "팔꿈치를 조절하며 천천히 내립니다."
+      ],
+      "precautions": [
+        "허리를 과신전하지 마세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 45,
+          "max": 175,
+          "optimal": 100
+        },
+        "shoulder": {
+          "min": 30,
+          "max": 180,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 80,
+        "topThreshold": 160,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "goblet_squat": {
+      "id": "goblet_squat",
+      "name": "고블릿 스쿼트",
+      "category": "dumbbell",
+      "muscleGroups": [
+        "quadriceps",
+        "glutes",
+        "core"
+      ],
+      "purpose": "초보자용 스쿼트 패턴 학습",
+      "benefits": "하체 강화와 코어 안정성 향상",
+      "instructions": [
+        "덤벨을 가슴 앞에 잡습니다.",
+        "가슴을 세우고 앉듯이 내려갑니다.",
+        "발바닥 전체로 밀어 올라옵니다."
+      ],
+      "precautions": [
+        "무릎이 안쪽으로 모이지 않게 하세요."
+      ],
+      "keyAngles": {
+        "knee": {
+          "min": 60,
+          "max": 175,
+          "optimal": 100
+        },
+        "hip": {
+          "min": 50,
+          "max": 180,
+          "optimal": 110
+        },
+        "spine": {
+          "min": 155,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "knee",
+        "bottomThreshold": 95,
+        "topThreshold": 155,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "barbell_row": {
+      "id": "barbell_row",
+      "name": "바벨 로우",
+      "category": "barbell",
+      "muscleGroups": [
+        "latissimus_dorsi",
+        "rhomboids",
+        "biceps"
+      ],
+      "purpose": "등 근육 강화",
+      "benefits": "등 두께와 견갑 조절 능력 향상",
+      "instructions": [
+        "힙힌지로 상체를 숙입니다.",
+        "바벨을 배꼽 쪽으로 당깁니다.",
+        "등을 유지하며 천천히 내립니다."
+      ],
+      "precautions": [
+        "허리가 말리지 않게 하세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 45,
+          "max": 170,
+          "optimal": 60
+        },
+        "hip": {
+          "min": 60,
+          "max": 130,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 155,
+          "max": 180,
+          "optimal": 170
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 155,
+        "topThreshold": 65,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "barbell_biceps_curl": {
+      "id": "barbell_biceps_curl",
+      "name": "바벨 컬",
+      "category": "barbell",
+      "muscleGroups": [
+        "biceps"
+      ],
+      "purpose": "이두근 강화",
+      "benefits": "팔 근력과 그립 안정성 향상",
+      "instructions": [
+        "바벨을 어깨너비로 잡습니다.",
+        "팔꿈치를 고정하고 들어 올립니다.",
+        "천천히 내려 긴장을 유지합니다."
+      ],
+      "precautions": [
+        "허리 반동을 쓰지 마세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 45,
+          "max": 170,
+          "optimal": 60
+        },
+        "shoulder": {
+          "min": 0,
+          "max": 45,
+          "optimal": 20
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 155,
+        "topThreshold": 60,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "leg_press": {
+      "id": "leg_press",
+      "name": "레그프레스",
+      "category": "machine",
+      "muscleGroups": [
+        "quadriceps",
+        "glutes",
+        "hamstrings"
+      ],
+      "purpose": "하체 근력 향상",
+      "benefits": "스쿼트보다 안정적으로 대퇴사두근 강화",
+      "instructions": [
+        "발을 발판에 골반 너비로 둡니다.",
+        "무릎을 굽혀 천천히 내립니다.",
+        "무릎을 완전히 잠그지 않고 밀어냅니다."
+      ],
+      "precautions": [
+        "무릎 과신전을 피하세요."
+      ],
+      "keyAngles": {
+        "knee": {
+          "min": 60,
+          "max": 175,
+          "optimal": 100
+        },
+        "hip": {
+          "min": 50,
+          "max": 180,
+          "optimal": 110
+        },
+        "spine": {
+          "min": 155,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "knee",
+        "bottomThreshold": 90,
+        "topThreshold": 160,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "lat_pulldown": {
+      "id": "lat_pulldown",
+      "name": "랫풀다운",
+      "category": "machine",
+      "muscleGroups": [
+        "latissimus_dorsi",
+        "biceps",
+        "rear_deltoid"
+      ],
+      "purpose": "광배근 강화",
+      "benefits": "등 너비와 당기는 힘 향상",
+      "instructions": [
+        "바를 어깨보다 넓게 잡습니다.",
+        "가슴을 세우고 쇄골 쪽으로 당깁니다.",
+        "견갑을 조절하며 천천히 올립니다."
+      ],
+      "precautions": [
+        "목 뒤로 당기지 마세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 45,
+          "max": 175,
+          "optimal": 100
+        },
+        "shoulder": {
+          "min": 30,
+          "max": 180,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 155,
+        "topThreshold": 65,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "seated_row": {
+      "id": "seated_row",
+      "name": "시티드 로우",
+      "category": "machine",
+      "muscleGroups": [
+        "latissimus_dorsi",
+        "rhomboids",
+        "biceps"
+      ],
+      "purpose": "등 중앙부 강화",
+      "benefits": "견갑 후인과 자세 개선",
+      "instructions": [
+        "가슴을 세우고 손잡이를 잡습니다.",
+        "팔꿈치를 뒤로 보내며 당깁니다.",
+        "등 긴장을 유지하며 천천히 폅니다."
+      ],
+      "precautions": [
+        "상체를 과하게 젖히지 마세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 45,
+          "max": 175,
+          "optimal": 100
+        },
+        "shoulder": {
+          "min": 30,
+          "max": 180,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 155,
+        "topThreshold": 65,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "chest_press_machine": {
+      "id": "chest_press_machine",
+      "name": "체스트 프레스 머신",
+      "category": "machine",
+      "muscleGroups": [
+        "chest",
+        "triceps",
+        "anterior_deltoid"
+      ],
+      "purpose": "가슴 밀기 근력 향상",
+      "benefits": "초보자도 안정적으로 가슴 자극",
+      "instructions": [
+        "손잡이를 가슴 옆에 맞춥니다.",
+        "팔을 앞으로 밀어냅니다.",
+        "천천히 가슴 옆으로 돌아옵니다."
+      ],
+      "precautions": [
+        "어깨가 앞으로 말리지 않게 하세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 45,
+          "max": 175,
+          "optimal": 100
+        },
+        "shoulder": {
+          "min": 30,
+          "max": 180,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 80,
+        "topThreshold": 155,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "cable_triceps_pushdown": {
+      "id": "cable_triceps_pushdown",
+      "name": "케이블 푸시다운",
+      "category": "cable",
+      "muscleGroups": [
+        "triceps"
+      ],
+      "purpose": "삼두근 강화",
+      "benefits": "팔 뒤쪽 근력과 팔꿈치 안정성 향상",
+      "instructions": [
+        "팔꿈치를 몸 옆에 고정합니다.",
+        "손잡이를 아래로 밀어 팔을 폅니다.",
+        "천천히 팔꿈치를 굽혀 돌아옵니다."
+      ],
+      "precautions": [
+        "팔꿈치가 앞뒤로 흔들리지 않게 하세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 60,
+          "max": 170,
+          "optimal": 160
+        },
+        "shoulder": {
+          "min": 0,
+          "max": 60,
+          "optimal": 25
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 70,
+        "topThreshold": 155,
+        "direction": "down_up"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "cable_face_pull": {
+      "id": "cable_face_pull",
+      "name": "케이블 페이스풀",
+      "category": "cable",
+      "muscleGroups": [
+        "rear_deltoid",
+        "rhomboids",
+        "traps"
+      ],
+      "purpose": "후면 어깨와 자세 개선",
+      "benefits": "라운드숄더 완화, 견갑 안정성 향상",
+      "instructions": [
+        "로프를 얼굴 높이에 맞춥니다.",
+        "팔꿈치를 벌리며 얼굴 쪽으로 당깁니다.",
+        "견갑을 모은 뒤 천천히 풉니다."
+      ],
+      "precautions": [
+        "허리를 젖혀 당기지 마세요."
+      ],
+      "keyAngles": {
+        "elbow": {
+          "min": 45,
+          "max": 175,
+          "optimal": 100
+        },
+        "shoulder": {
+          "min": 30,
+          "max": 180,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "elbow",
+        "bottomThreshold": 155,
+        "topThreshold": 80,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "cable_fly": {
+      "id": "cable_fly",
+      "name": "케이블 플라이",
+      "category": "cable",
+      "muscleGroups": [
+        "chest",
+        "anterior_deltoid"
+      ],
+      "purpose": "가슴 수축 집중",
+      "benefits": "가슴 안쪽 자극과 어깨 제어 향상",
+      "instructions": [
+        "케이블을 양손에 잡고 한 발 앞으로 섭니다.",
+        "팔꿈치를 살짝 굽힌 채 가슴 앞에서 모읍니다.",
+        "천천히 벌려 가슴을 늘립니다."
+      ],
+      "precautions": [
+        "어깨 통증이 있으면 범위를 줄이세요."
+      ],
+      "keyAngles": {
+        "shoulder": {
+          "min": 30,
+          "max": 120,
+          "optimal": 75
+        },
+        "elbow": {
+          "min": 120,
+          "max": 175,
+          "optimal": 150
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "shoulder",
+        "bottomThreshold": 110,
+        "topThreshold": 55,
+        "direction": "up_down"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "russian_twist": {
+      "id": "russian_twist",
+      "name": "러시안 트위스트",
+      "category": "core",
+      "muscleGroups": [
+        "core"
+      ],
+      "purpose": "복사근과 몸통 회전 제어",
+      "benefits": "코어 회전 안정성 향상",
+      "instructions": [
+        "무릎을 굽히고 앉아 상체를 살짝 뒤로 기울입니다.",
+        "복부에 힘을 주고 좌우로 몸통을 회전합니다.",
+        "허리가 무너지지 않게 유지합니다."
+      ],
+      "precautions": [
+        "허리 통증이 있으면 발을 바닥에 두세요."
+      ],
+      "keyAngles": {
+        "hip": {
+          "min": 70,
+          "max": 130,
+          "optimal": 100
+        },
+        "spine": {
+          "min": 150,
+          "max": 180,
+          "optimal": 170
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "isIsometric": true,
+        "direction": "hold"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "dead_bug": {
+      "id": "dead_bug",
+      "name": "데드버그",
+      "category": "core",
+      "muscleGroups": [
+        "core",
+        "hip_flexors"
+      ],
+      "purpose": "허리 부담 적은 코어 안정화",
+      "benefits": "복압 조절과 허리 안정성 향상",
+      "instructions": [
+        "누워서 팔과 다리를 들어 올립니다.",
+        "반대쪽 팔과 다리를 천천히 내립니다.",
+        "허리가 뜨지 않게 복부에 힘을 줍니다."
+      ],
+      "precautions": [
+        "허리가 뜨면 가동범위를 줄이세요."
+      ],
+      "keyAngles": {
+        "hip": {
+          "min": 70,
+          "max": 140,
+          "optimal": 90
+        },
+        "shoulder": {
+          "min": 80,
+          "max": 180,
+          "optimal": 150
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 175
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "bottomThreshold": 90,
+        "topThreshold": 130,
+        "direction": "full_cycle"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "side_plank": {
+      "id": "side_plank",
+      "name": "사이드 플랭크",
+      "category": "core",
+      "muscleGroups": [
+        "core",
+        "shoulders",
+        "glutes"
+      ],
+      "purpose": "측면 코어 강화",
+      "benefits": "골반 안정성과 옆구리 근지구력 향상",
+      "instructions": [
+        "팔꿈치를 어깨 아래에 둡니다.",
+        "몸을 일직선으로 들어 올립니다.",
+        "골반이 떨어지지 않게 유지합니다."
+      ],
+      "precautions": [
+        "어깨가 귀 쪽으로 올라가지 않게 하세요."
+      ],
+      "keyAngles": {
+        "hip": {
+          "min": 160,
+          "max": 185,
+          "optimal": 180
+        },
+        "shoulder": {
+          "min": 70,
+          "max": 110,
+          "optimal": 90
+        },
+        "spine": {
+          "min": 160,
+          "max": 185,
+          "optimal": 180
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "isIsometric": true,
+        "direction": "hold"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "hamstring_stretch": {
+      "id": "hamstring_stretch",
+      "name": "햄스트링 스트레칭",
+      "category": "stretching",
+      "muscleGroups": [
+        "hamstrings",
+        "calves"
+      ],
+      "purpose": "허벅지 뒤쪽 유연성 향상",
+      "benefits": "골반 움직임과 허리 부담 완화",
+      "instructions": [
+        "한쪽 다리를 앞으로 뻗습니다.",
+        "등을 곧게 세우고 골반부터 접습니다.",
+        "허벅지 뒤쪽 당김을 느끼며 유지합니다."
+      ],
+      "precautions": [
+        "반동을 주지 마세요. 통증이 아닌 당김까지만 진행하세요."
+      ],
+      "keyAngles": {
+        "hip": {
+          "min": 60,
+          "max": 130,
+          "optimal": 90
+        },
+        "knee": {
+          "min": 150,
+          "max": 180,
+          "optimal": 170
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "hip",
+        "isIsometric": true,
+        "direction": "hold"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "quad_stretch": {
+      "id": "quad_stretch",
+      "name": "대퇴사두근 스트레칭",
+      "category": "stretching",
+      "muscleGroups": [
+        "quadriceps",
+        "hip_flexors"
+      ],
+      "purpose": "허벅지 앞쪽 유연성 향상",
+      "benefits": "무릎과 골반 전면 긴장 완화",
+      "instructions": [
+        "서서 한쪽 발등을 잡습니다.",
+        "무릎을 아래로 향하게 모읍니다.",
+        "골반이 앞으로 밀리지 않게 유지합니다."
+      ],
+      "precautions": [
+        "허리를 꺾지 말고 복부에 힘을 주세요."
+      ],
+      "keyAngles": {
+        "knee": {
+          "min": 30,
+          "max": 90,
+          "optimal": 45
+        },
+        "hip": {
+          "min": 140,
+          "max": 185,
+          "optimal": 170
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "knee",
+        "isIsometric": true,
+        "direction": "hold"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
+      ]
+    },
+    "cat_cow": {
+      "id": "cat_cow",
+      "name": "캣카우",
+      "category": "stretching",
+      "muscleGroups": [
+        "core",
+        "back"
+      ],
+      "purpose": "척추 가동성 향상",
+      "benefits": "허리와 등 긴장 완화",
+      "instructions": [
+        "네발기기 자세를 만듭니다.",
+        "등을 둥글게 말았다가 천천히 폅니다.",
+        "호흡과 함께 부드럽게 반복합니다."
+      ],
+      "precautions": [
+        "목을 과하게 젖히지 마세요."
+      ],
+      "keyAngles": {
+        "spine": {
+          "min": 130,
+          "max": 190,
+          "optimal": 170
+        },
+        "hip": {
+          "min": 80,
+          "max": 140,
+          "optimal": 100
+        }
+      },
+      "repDetection": {
+        "primaryJoint": "spine",
+        "bottomThreshold": 145,
+        "topThreshold": 180,
+        "direction": "full_cycle"
+      },
+      "commonErrors": [
+        {
+          "id": "form_check",
+          "message": "관절 정렬과 호흡을 유지하세요."
+        }
       ]
     }
   },
   "muscleGroups": {
-    "quadriceps": { "name": "대퇴사두근", "color": "#FF6B6B" },
-    "hamstrings": { "name": "햄스트링", "color": "#FF8E53" },
-    "glutes": { "name": "둔근", "color": "#FFA07A" },
-    "chest": { "name": "가슴", "color": "#4ECDC4" },
-    "back": { "name": "등", "color": "#45B7D1" },
-    "shoulders": { "name": "어깨", "color": "#96CEB4" },
-    "triceps": { "name": "삼두근", "color": "#FFEAA7" },
-    "biceps": { "name": "이두근", "color": "#DDA0DD" },
-    "core": { "name": "코어", "color": "#98D8C8" },
-    "calves": { "name": "종아리", "color": "#F7DC6F" }
+    "quadriceps": {
+      "name": "대퇴사두근",
+      "color": "#FF6B6B"
+    },
+    "hamstrings": {
+      "name": "햄스트링",
+      "color": "#FF8E53"
+    },
+    "glutes": {
+      "name": "둔근",
+      "color": "#FFA07A"
+    },
+    "chest": {
+      "name": "가슴",
+      "color": "#4ECDC4"
+    },
+    "back": {
+      "name": "등",
+      "color": "#45B7D1"
+    },
+    "shoulders": {
+      "name": "어깨",
+      "color": "#96CEB4"
+    },
+    "triceps": {
+      "name": "삼두근",
+      "color": "#FFEAA7"
+    },
+    "biceps": {
+      "name": "이두근",
+      "color": "#DDA0DD"
+    },
+    "core": {
+      "name": "코어",
+      "color": "#98D8C8"
+    },
+    "calves": {
+      "name": "종아리",
+      "color": "#F7DC6F"
+    },
+    "latissimus_dorsi": {
+      "name": "광배근",
+      "color": "#45B7D1"
+    },
+    "rhomboids": {
+      "name": "능형근",
+      "color": "#4aa3df"
+    },
+    "rear_deltoid": {
+      "name": "후면 삼각근",
+      "color": "#96CEB4"
+    },
+    "anterior_deltoid": {
+      "name": "전면 삼각근",
+      "color": "#96CEB4"
+    },
+    "deltoids": {
+      "name": "삼각근",
+      "color": "#96CEB4"
+    },
+    "upper_trapezius": {
+      "name": "상부 승모근",
+      "color": "#88d8b0"
+    },
+    "lower_back": {
+      "name": "척추기립근",
+      "color": "#45B7D1"
+    },
+    "traps": {
+      "name": "승모근",
+      "color": "#88d8b0"
+    },
+    "full_body": {
+      "name": "전신",
+      "color": "#00f5ff"
+    },
+    "hip_flexors": {
+      "name": "고관절 굴곡근",
+      "color": "#FFA07A"
+    },
+    "adductors": {
+      "name": "내전근",
+      "color": "#FF8E53"
+    },
+    "abductors": {
+      "name": "외전근",
+      "color": "#FF8E53"
+    }
   }
 }

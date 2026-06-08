@@ -9,6 +9,8 @@ class ExerciseRecognition {
   constructor(exerciseDB) {
     this.exerciseDB = exerciseDB;
     this.currentExercise = null;
+    this.selectedExercise = null;
+    this.manualMode = false;
     this.detectionConfidence = 0;
     this.repCount = 0;
     this.setCount = 0;
@@ -50,6 +52,49 @@ class ExerciseRecognition {
   }
 
   /**
+   * 사용자가 직접 운동을 선택했을 때 자동 인식을 잠그고 해당 운동으로 진행
+   */
+  selectExercise(exerciseId) {
+    if (!exerciseId || !this.exerciseDB.exercises[exerciseId]) {
+      this.manualMode = false;
+      this.selectedExercise = null;
+      this.currentExercise = null;
+      this._resetRepState();
+      return null;
+    }
+
+    const previousExercise = this.currentExercise;
+    this.manualMode = true;
+    this.selectedExercise = exerciseId;
+    this.currentExercise = exerciseId;
+    this.detectionConfidence = 1;
+    this.detectionBuffer = [];
+    this._resetRepState(false);
+
+    if (this.onExerciseDetected) {
+      this.onExerciseDetected({
+        exercise: this.exerciseDB.exercises[exerciseId],
+        previousExercise: previousExercise ? this.exerciseDB.exercises[previousExercise] : null,
+        confidence: 1,
+        manual: true
+      });
+    }
+    return this.exerciseDB.exercises[exerciseId];
+  }
+
+  /**
+   * 자동 운동 인식 모드로 전환
+   */
+  enableAutoDetection() {
+    this.manualMode = false;
+    this.selectedExercise = null;
+    this.currentExercise = null;
+    this.detectionConfidence = 0;
+    this.detectionBuffer = [];
+    this._resetRepState(false);
+  }
+
+  /**
    * 포즈 데이터를 분석하여 운동 종목 감지
    * @param {Object} poseData - PoseEngine에서 전달된 포즈 데이터
    * @returns {Object} 감지된 운동 및 신뢰도
@@ -58,6 +103,15 @@ class ExerciseRecognition {
     const { angles, landmarks } = poseData;
 
     if (!angles || !landmarks) return null;
+
+    if (this.manualMode && this.selectedExercise) {
+      return {
+        detected: this.selectedExercise,
+        confidence: 1,
+        allScores: { [this.selectedExercise]: 1 },
+        manual: true
+      };
+    }
 
     // 각 운동별 매칭 점수 계산
     const scores = {};
@@ -277,90 +331,83 @@ class ExerciseRecognition {
   _processRepState(angle, repDef) {
     const sm = this.repStateMachine;
     const now = Date.now();
+    const MIN_REP_INTERVAL = 500;
+    const direction = repDef.direction || 'down_up';
+    const highThreshold = Math.max(repDef.topThreshold ?? 160, repDef.bottomThreshold ?? 80);
+    const lowThreshold = Math.min(repDef.topThreshold ?? 160, repDef.bottomThreshold ?? 80);
+    const startsHigh = (repDef.topThreshold ?? highThreshold) >= (repDef.bottomThreshold ?? lowThreshold);
     let repCompleted = false;
     let repQuality = null;
 
-    // 최소 반복 간격 (0.5초)
-    const MIN_REP_INTERVAL = 500;
-
-    switch (sm.state) {
-      case 'idle':
-        // 시작 포지션 (top position)
-        if (angle > repDef.topThreshold) {
-          sm.state = 'top';
-          sm.repStartAngle = angle;
-          sm.repStartTime = now;
-        }
-        break;
-
-      case 'top':
-        // 내려가기 시작
-        if (angle < repDef.bottomThreshold + 20) {
-          sm.state = 'descending';
-        }
-        break;
-
-      case 'descending':
-        // 바닥에 도달
-        if (angle <= repDef.bottomThreshold) {
-          sm.state = 'bottom';
-          sm.bottomAngle = angle;
-          sm.bottomTime = now;
-        }
-        // 다시 올라가면 (부분 반복)
-        else if (angle > repDef.bottomThreshold + 30) {
-          sm.state = 'ascending';
-        }
-        break;
-
-      case 'bottom':
-        // 올라가기 시작
-        if (angle > repDef.bottomThreshold + 15) {
-          sm.state = 'ascending';
-        }
-        break;
-
-      case 'ascending':
-        // 상단에 도달 = 반복 완료
-        if (angle >= repDef.topThreshold && (now - sm.lastRepTime) > MIN_REP_INTERVAL) {
-          repCompleted = true;
-          this.repCount++;
-
-          // 반복 품질 계산
-          repQuality = this._calculateRepQuality(sm, angle, now);
-
-          // 반복 데이터 저장
-          this.repHistory.push({
-            repNumber: this.repCount,
-            quality: repQuality,
-            duration: now - sm.repStartTime,
-            bottomAngle: sm.bottomAngle,
-            timestamp: now
-          });
-
-          sm.lastRepTime = now;
-          sm.state = 'top';
-          sm.repStartAngle = angle;
-          sm.repStartTime = now;
-
-          if (this.onRepCounted) {
-            this.onRepCounted({
-              count: this.repCount,
-              quality: repQuality,
-              exercise: this.currentExercise
-            });
+    // 대부분 운동: 펴진 자세(큰 각도) → 굽힌 자세(작은 각도) → 다시 펴짐
+    if (startsHigh) {
+      switch (sm.state) {
+        case 'idle':
+          if (angle >= highThreshold) {
+            sm.state = 'top'; sm.repStartAngle = angle; sm.repStartTime = now;
           }
-        }
-        break;
+          break;
+        case 'top':
+          if (angle <= lowThreshold + 20) sm.state = 'descending';
+          break;
+        case 'descending':
+          if (angle <= lowThreshold) { sm.state = 'bottom'; sm.bottomAngle = angle; sm.bottomTime = now; }
+          break;
+        case 'bottom':
+          if (angle >= lowThreshold + 15) sm.state = 'ascending';
+          break;
+        case 'ascending':
+          if (angle >= highThreshold && (now - sm.lastRepTime) > MIN_REP_INTERVAL) {
+            repCompleted = true;
+          }
+          break;
+      }
+    } else {
+      // 풀업/로우처럼 시작이 팔이 펴진 큰 각도이고, 정상 완료 지점이 작은 각도인 운동
+      // bottomThreshold를 시작 위치, topThreshold를 수축 위치로 해석한다.
+      switch (sm.state) {
+        case 'idle':
+          if (angle >= highThreshold) {
+            sm.state = 'bottom'; sm.repStartAngle = angle; sm.repStartTime = now;
+          }
+          break;
+        case 'bottom':
+          if (angle <= highThreshold - 15) sm.state = 'ascending';
+          break;
+        case 'ascending':
+          if (angle <= lowThreshold) { sm.state = 'top'; sm.bottomAngle = angle; sm.bottomTime = now; }
+          break;
+        case 'top':
+          if (angle >= lowThreshold + 20) sm.state = 'descending';
+          break;
+        case 'descending':
+          if (angle >= highThreshold && (now - sm.lastRepTime) > MIN_REP_INTERVAL) {
+            repCompleted = true;
+          }
+          break;
+      }
     }
 
-    return {
-      repCompleted,
-      repCount: this.repCount,
-      state: sm.state,
-      repQuality,
-      currentAngle: angle
-    };
+    if (repCompleted) {
+      this.repCount++;
+      repQuality = this._calculateRepQuality(sm, angle, now);
+      this.repHistory.push({
+        repNumber: this.repCount,
+        quality: repQuality,
+        duration: now - (sm.repStartTime || now),
+        bottomAngle: sm.bottomAngle,
+        timestamp: now
+      });
+      sm.lastRepTime = now;
+      sm.state = startsHigh ? 'top' : 'bottom';
+      sm.repStartAngle = angle;
+      sm.repStartTime = now;
+      if (this.onRepCounted) {
+        this.onRepCounted({ count: this.repCount, quality: repQuality, exercise: this.currentExercise });
+      }
+    }
+
+    return { repCompleted, repCount: this.repCount, state: sm.state, repQuality, currentAngle: angle };
   }
 
   /**
@@ -410,7 +457,7 @@ class ExerciseRecognition {
   /**
    * 반복 상태 초기화
    */
-  _resetRepState() {
+  _resetRepState(resetCount = true) {
     this.repStateMachine = {
       state: 'idle',
       primaryAngleHistory: [],
@@ -420,8 +467,8 @@ class ExerciseRecognition {
       lastRepTime: 0,
       isometricStart: null
     };
-    this.repCount = 0;
-    this.repHistory = [];
+    if (resetCount) this.repCount = 0;
+    if (resetCount) this.repHistory = [];
   }
 
   /**
@@ -469,7 +516,7 @@ class ExerciseRecognition {
   resetSession() {
     this._resetRepState();
     this.setCount = 0;
-    this.currentExercise = null;
+    if (!this.manualMode) this.currentExercise = null;
     this.detectionBuffer = [];
     this.sessionData = {
       startTime: Date.now(),

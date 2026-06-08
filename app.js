@@ -18,6 +18,9 @@ class App {
     // UI 상태
     this.state = {
       isRunning: false,
+      isPaused: false,
+      isSessionEnded: false,
+      selectedExerciseId: '',
       isCalibrating: false,
       currentView: 'workout',   // 'workout' | 'dashboard' | 'settings'
       cameraMode: 'user',        // 'user' | 'environment'
@@ -42,6 +45,7 @@ class App {
     this.setCount = 0;
     this.sessionTimer = null;
     this.sessionStartTime = null;
+    this.sessionElapsedMs = 0;
 
     // 캔버스
     this.canvas = null;
@@ -88,6 +92,8 @@ class App {
 
     // 대시보드 DB 초기화
     await this.dashboard.initialize();
+
+    this._populateExerciseSelect();
 
     // MediaPipe 초기화
     const poseReady = await this.poseEngine.initialize();
@@ -150,13 +156,16 @@ class App {
   _setupEventListeners() {
     // 시작/정지 버튼
     document.getElementById('btnStart')?.addEventListener('click', () => this.startWorkout());
-    document.getElementById('btnStop')?.addEventListener('click', () => this.stopWorkout());
+    document.getElementById('btnStop')?.addEventListener('click', () => this.pauseWorkout());
 
     // 카메라 전환
     document.getElementById('btnCameraFlip')?.addEventListener('click', () => this.flipCamera());
+    document.getElementById('exerciseSelect')?.addEventListener('change', (e) => this.selectExercise(e.target.value));
+    document.getElementById('btnAngles')?.addEventListener('click', () => this.toggleAngles());
 
     // 세트 완료
     document.getElementById('btnCompleteSet')?.addEventListener('click', () => this.completeCurrentSet());
+    document.getElementById('btnResetReps')?.addEventListener('click', () => this.resetReps());
 
     // 음성 토글
     document.getElementById('btnVoice')?.addEventListener('click', () => this.toggleVoice());
@@ -185,10 +194,95 @@ class App {
   }
 
   /**
+   * 운동 선택 메뉴 구성
+   */
+  _populateExerciseSelect() {
+    const select = document.getElementById('exerciseSelect');
+    if (!select || !this.exerciseDB?.exercises) return;
+
+    const categoryNames = {
+      bodyweight: '맨몸 운동', dumbbell: '덤벨 운동', barbell: '바벨 운동',
+      machine: '머신 운동', cable: '케이블 운동', core: '코어 운동',
+      cardio: '유산소 운동', stretching: '스트레칭 운동', freeweight: '프리웨이트'
+    };
+    select.innerHTML = '<option value="">운동을 선택하세요</option>';
+    const groups = {};
+    Object.values(this.exerciseDB.exercises).forEach(ex => {
+      const category = ex.category || 'etc';
+      if (!groups[category]) groups[category] = [];
+      groups[category].push(ex);
+    });
+    Object.entries(groups).forEach(([category, exercises]) => {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = categoryNames[category] || category;
+      exercises.sort((a, b) => a.name.localeCompare(b.name, 'ko')).forEach(ex => {
+        const opt = document.createElement('option');
+        opt.value = ex.id;
+        opt.textContent = ex.name;
+        optgroup.appendChild(opt);
+      });
+      select.appendChild(optgroup);
+    });
+  }
+
+  /**
+   * 선택한 운동 정보 표시 및 수동 운동 모드 설정
+   */
+  selectExercise(exerciseId) {
+    this.state.selectedExerciseId = exerciseId;
+    const exercise = this.exerciseDB?.exercises?.[exerciseId];
+    const panel = document.getElementById('exerciseInfoPanel');
+    if (!panel) return;
+
+    if (!exercise) {
+      panel.innerHTML = '<div class="empty-guide">운동을 선택하면 목적, 자극 부위, 방법, 주의사항이 표시됩니다.</div>';
+      return;
+    }
+
+    if (this.exerciseRecognition) this.exerciseRecognition.selectExercise(exerciseId);
+    const muscles = (exercise.muscleGroups || []).map(m => this.exerciseDB.muscleGroups?.[m]?.name || m).join(', ');
+    panel.innerHTML = `
+      <div class="exercise-info-title">${exercise.name}</div>
+      <div class="exercise-chip-row"><span>${this._categoryName(exercise.category)}</span><span>${muscles || '전신'}</span></div>
+      <div class="info-section"><b>운동 목적</b><p>${exercise.purpose || '근력과 움직임 품질 향상'}</p></div>
+      <div class="info-section"><b>주요 자극 부위</b><p>${muscles || '전신'}</p></div>
+      <div class="info-section"><b>기대 효과</b><p>${exercise.benefits || '근력, 안정성, 자세 제어 능력 향상'}</p></div>
+      <div class="info-section"><b>올바른 방법</b><ol>${(exercise.instructions || []).map(x => `<li>${x}</li>`).join('')}</ol></div>
+      <div class="info-section warning"><b>주의사항</b><ul>${(exercise.precautions || []).map(x => `<li>${x}</li>`).join('')}</ul></div>`;
+
+    const detected = document.getElementById('detectedExercise');
+    if (detected) detected.textContent = exercise.name;
+    this._updateStatus(`${exercise.name} 선택됨 - 시작 버튼을 누르세요`);
+  }
+
+  _categoryName(category) {
+    return ({ bodyweight: '맨몸', dumbbell: '덤벨', barbell: '바벨', machine: '머신', cable: '케이블', core: '코어', cardio: '유산소', stretching: '스트레칭', freeweight: '프리웨이트' })[category] || category || '기타';
+  }
+
+  toggleAngles() {
+    this.state.showAngles = !this.state.showAngles;
+    document.getElementById('btnAngles')?.classList.toggle('active', this.state.showAngles);
+  }
+
+  _resetWorkoutUI() {
+    const repEl = document.getElementById('repCounter'); if (repEl) repEl.textContent = '0';
+    const setEl = document.getElementById('setCounter'); if (setEl) setEl.textContent = '0';
+    const qualityEl = document.getElementById('repQuality'); if (qualityEl) qualityEl.textContent = '--';
+    const timerEl = document.getElementById('sessionTimer'); if (timerEl) timerEl.textContent = '00:00';
+    const startBtn = document.getElementById('btnStart'); if (startBtn) startBtn.textContent = '▶ 운동 시작';
+  }
+
+  /**
    * 운동 시작
    */
   async startWorkout() {
     if (this.state.isRunning) return;
+
+    const selected = this.state.selectedExerciseId || document.getElementById('exerciseSelect')?.value;
+    if (!selected) {
+      this._showError('먼저 운동을 선택해주세요.');
+      return;
+    }
 
     const started = await this.poseEngine.startCamera(this.videoElement, this.state.cameraMode);
     if (!started) {
@@ -196,38 +290,66 @@ class App {
       return;
     }
 
+    const isResume = this.state.isPaused && this.sessionStartTime;
     this.state.isRunning = true;
-    this.sessionStartTime = Date.now();
-    this.dashboard.startSession();
-    this.exerciseRecognition.resetSession();
+    this.state.isPaused = false;
+    this.state.isSessionEnded = false;
 
-    // 세션 타이머 시작
+    if (!isResume) {
+      this.sessionElapsedMs = 0;
+      this.sessionStartTime = Date.now();
+      this.dashboard.startSession();
+      this.exerciseRecognition.resetSession();
+      this.exerciseRecognition.selectExercise(selected);
+      this.repCount = 0;
+      this.setCount = 0;
+      this._resetWorkoutUI();
+    } else {
+      this.sessionStartTime = Date.now() - this.sessionElapsedMs;
+      this.exerciseRecognition.selectExercise(selected);
+    }
+
+    clearInterval(this.sessionTimer);
     this.sessionTimer = setInterval(() => this._updateSessionTimer(), 1000);
+    this._updateSessionTimer();
 
     document.getElementById('btnStart')?.classList.add('hidden');
     document.getElementById('btnStop')?.classList.remove('hidden');
     document.getElementById('workoutControls')?.classList.remove('hidden');
+    document.getElementById('exerciseSelect')?.setAttribute('disabled', 'disabled');
 
-    this._updateStatus('운동 감지 중...');
-    this._speakFeedback('운동을 시작합니다. 카메라 앞에 서주세요.');
+    this._updateStatus(isResume ? '운동을 재개했습니다' : '선택한 운동 분석 중...');
+    this._speakFeedback(isResume ? '운동을 재개합니다.' : `${this.exerciseDB.exercises[selected].name} 운동을 시작합니다.`);
   }
 
   /**
-   * 운동 정지
+   * 운동 일시정지: 카운트/타이머를 멈추고 현재 세션 데이터는 유지
    */
-  async stopWorkout() {
+  async pauseWorkout() {
     if (!this.state.isRunning) return;
 
     this.state.isRunning = false;
+    this.state.isPaused = true;
+    this.sessionElapsedMs = this.sessionStartTime ? Date.now() - this.sessionStartTime : this.sessionElapsedMs;
     clearInterval(this.sessionTimer);
+    this.sessionTimer = null;
 
     await this.poseEngine.stopCamera();
 
     document.getElementById('btnStart')?.classList.remove('hidden');
     document.getElementById('btnStop')?.classList.add('hidden');
+    const startBtn = document.getElementById('btnStart');
+    if (startBtn) startBtn.textContent = '▶ 운동 재개';
 
-    this._updateStatus('운동이 일시정지되었습니다');
+    this._updateStatus('일시정지됨 - 재개 버튼을 누르면 이어서 진행됩니다');
     this._clearCanvas();
+  }
+
+  /**
+   * 기존 stopWorkout 호환용: 일시정지로 동작
+   */
+  async stopWorkout() {
+    return this.pauseWorkout();
   }
 
   /**
@@ -677,8 +799,8 @@ class App {
    */
   completeCurrentSet() {
     const setData = this.exerciseRecognition.completeSet(this.state.weightInput);
-    if (setData) {
-      this._onSetComplete(setData);
+    if (!setData) {
+      this._showFeedbackMessage('완료할 반복 횟수가 없습니다.', 'warning');
     }
   }
 
@@ -689,14 +811,41 @@ class App {
     this.exerciseRecognition._resetRepState();
     const repEl = document.getElementById('repCounter');
     if (repEl) repEl.textContent = '0';
+    const qualityEl = document.getElementById('repQuality');
+    if (qualityEl) qualityEl.textContent = '--';
   }
 
   /**
    * 세션 종료
    */
   async endSession() {
-    await this.stopWorkout();
+    if (this.state.isRunning) {
+      this.sessionElapsedMs = this.sessionStartTime ? Date.now() - this.sessionStartTime : this.sessionElapsedMs;
+    }
+
+    this.state.isRunning = false;
+    this.state.isPaused = false;
+    this.state.isSessionEnded = true;
+    clearInterval(this.sessionTimer);
+    this.sessionTimer = null;
+
+    if (this.poseEngine) await this.poseEngine.stopCamera();
+    this._clearCanvas();
+    if (this.speechSynthesis) this.speechSynthesis.cancel();
+
     const sessionData = await this.dashboard.endSession();
+
+    document.getElementById('btnStart')?.classList.remove('hidden');
+    document.getElementById('btnStop')?.classList.add('hidden');
+    document.getElementById('workoutControls')?.classList.add('hidden');
+    document.getElementById('exerciseSelect')?.removeAttribute('disabled');
+    const startBtn = document.getElementById('btnStart');
+    if (startBtn) startBtn.textContent = '▶ 운동 시작';
+
+    this.exerciseRecognition.resetSession();
+    this.sessionStartTime = null;
+    this.sessionElapsedMs = 0;
+    this._updateStatus('세션이 완전히 종료되었습니다');
 
     if (sessionData) {
       const totalSets = sessionData.sets?.length || 0;
@@ -754,7 +903,7 @@ class App {
    */
   _updateSessionTimer() {
     if (!this.sessionStartTime) return;
-    const elapsed = Date.now() - this.sessionStartTime;
+    const elapsed = this.state.isRunning ? Date.now() - this.sessionStartTime : this.sessionElapsedMs;
     const minutes = Math.floor(elapsed / 60000);
     const seconds = Math.floor((elapsed % 60000) / 1000);
 

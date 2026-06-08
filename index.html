@@ -43,8 +43,8 @@
     </div>
 
     <nav class="header-nav">
-      <button class="nav-btn active" id="btnWorkout" onclick="app?.showWorkout()">운동</button>
-      <button class="nav-btn" id="btnDashboard" onclick="app?.showDashboard()">대시보드</button>
+      <button class="nav-btn active" id="btnWorkout">운동</button>
+      <button class="nav-btn" id="btnDashboard">대시보드</button>
     </nav>
   </header>
 
@@ -83,16 +83,27 @@
 
             <!-- Camera Controls (in-camera) -->
             <div class="camera-controls">
-              <button class="icon-btn active" id="btnSkeleton" title="스켈레톤 표시" onclick="app?.toggleSkeleton()">🦴</button>
-              <button class="icon-btn" id="btnAngles" title="각도 표시" onclick="app?.state && (app.state.showAngles = !app.state.showAngles); this.classList.toggle('active')">📐</button>
-              <button class="icon-btn" id="btnCameraFlip" title="카메라 전환" onclick="app?.flipCamera()">🔄</button>
-              <button class="icon-btn" id="btnVoice" title="음성 피드백" onclick="app?.toggleVoice()">🔊</button>
+              <button class="icon-btn active" id="btnSkeleton" title="스켈레톤 표시">🦴</button>
+              <button class="icon-btn" id="btnAngles" title="각도 표시">📐</button>
+              <button class="icon-btn" id="btnCameraFlip" title="카메라 전환">🔄</button>
+              <button class="icon-btn" id="btnVoice" title="음성 피드백">🔊</button>
             </div>
           </div>
         </div>
 
         <!-- ── Side Panel ── -->
         <div class="side-panel">
+
+          <!-- Exercise Select -->
+          <div class="panel-card exercise-select-card">
+            <div class="panel-card-title">운동 선택</div>
+            <select id="exerciseSelect" class="exercise-select">
+              <option value="">운동 데이터를 불러오는 중...</option>
+            </select>
+            <div id="exerciseInfoPanel" class="exercise-info-panel">
+              <div class="empty-guide">운동을 선택하면 목적, 자극 부위, 방법, 주의사항이 표시됩니다.</div>
+            </div>
+          </div>
 
           <!-- Session Timer -->
           <div class="panel-card" style="padding: 10px 14px;">
@@ -202,22 +213,22 @@
 
             <div class="controls-grid">
               <!-- Start / Stop -->
-              <button class="btn btn-primary btn-full" id="btnStart" onclick="app?.startWorkout()">
+              <button class="btn btn-primary btn-full" id="btnStart">
                 ▶ 운동 시작
               </button>
-              <button class="btn btn-danger btn-full hidden" id="btnStop" onclick="app?.stopWorkout()">
+              <button class="btn btn-danger btn-full hidden" id="btnStop">
                 ⏸ 일시 정지
               </button>
 
               <!-- Set & Rep controls -->
               <div id="workoutControls" class="hidden" style="display:contents">
-                <button class="btn btn-success" id="btnCompleteSet" onclick="app?.completeCurrentSet()" title="스페이스바">
+                <button class="btn btn-success" id="btnCompleteSet" title="스페이스바">
                   ✓ 세트 완료
                 </button>
-                <button class="btn btn-neutral" onclick="app?.resetReps()" title="R키">
+                <button class="btn btn-neutral" id="btnResetReps" title="R키">
                   ↺ 횟수 초기화
                 </button>
-                <button class="btn btn-danger btn-full" id="btnEndSession" onclick="app?.endSession()">
+                <button class="btn btn-danger btn-full" id="btnEndSession">
                   ■ 세션 종료
                 </button>
               </div>
@@ -254,7 +265,7 @@
     <div id="dashboardView" class="dashboard-view hidden">
       <div class="dashboard-header">
         <h2 class="dashboard-title">운동 기록</h2>
-        <button class="btn btn-neutral" onclick="app?.showWorkout()" style="padding:6px 14px; font-size:11px;">
+        <button class="btn btn-neutral" style="padding:6px 14px; font-size:11px;">
           ← 운동으로 돌아가기
         </button>
       </div>

@@ -974,3 +974,54 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0.08em; }
   .controls-grid { grid-template-columns: 1fr; }
   .btn-full { grid-column: auto; }
 }
+
+
+/* ── Beginner-friendly exercise selector ── */
+.exercise-select-card { border-color: rgba(0, 255, 136, 0.25); }
+.exercise-select {
+  width: 100%;
+  background: var(--bg-deep);
+  color: var(--text-bright);
+  border: var(--border-active);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+}
+.exercise-select:disabled { opacity: .65; cursor: not-allowed; }
+.exercise-info-panel {
+  margin-top: 10px;
+  max-height: 280px;
+  overflow: auto;
+  padding-right: 4px;
+  color: var(--text-mid);
+  line-height: 1.55;
+  font-size: 12px;
+}
+.exercise-info-title {
+  color: var(--neon-green);
+  font-family: var(--font-display);
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.exercise-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.exercise-chip-row span {
+  border: 1px solid rgba(0,245,255,.25);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--neon-cyan);
+  background: rgba(0,245,255,.06);
+  font-size: 11px;
+}
+.info-section { margin: 8px 0; }
+.info-section b { color: var(--text-bright); display:block; margin-bottom:2px; }
+.info-section ol, .info-section ul { padding-left: 18px; }
+.info-section.warning { color: #ffbf7a; }
+.empty-guide { color: var(--text-dim); font-size: 12px; padding: 8px 0; }
+.btn:disabled { opacity:.55; cursor:not-allowed; }
+@media (max-width: 900px) {
+  .workout-layout { grid-template-columns: 1fr; height: auto; }
+  .camera-section { min-height: 420px; }
+  .side-panel { max-height: none; }
+}
